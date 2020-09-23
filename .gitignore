@@ -1,0 +1,12 @@
+# The virtual environment.
+.venv/
+
+# Cache files stored by VS Code.
+.vscode/
+
+# A bash script that I'm using to port the script on different systems
+**setup.sh
+
+# Configuration files to interact with Google Drive API.
+**/**.pickle
+**/**.json
