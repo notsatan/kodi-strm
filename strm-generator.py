@@ -1,11 +1,14 @@
 # The main script responsible for generating .strm files as needed.
 
-from os.path import exists
+import sys
+from os import getcwd, mkdir, system
+from os.path import exists, join, isdir
 from pickle import dump as dump_pickle
 from pickle import load as load_pickle
-from typing import List, Optional
+from re import match, sub
+from time import sleep
+from typing import Dict, List, Optional
 
-from re import match
 from colorama import Fore, Style
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -15,12 +18,12 @@ from googleapiclient.discovery import Resource, build
 
 def authenticate() -> Resource:
     """
-        A simple method to authenticate a user with Google Drive API. For the first 
+        A simple method to authenticate a user with Google Drive API. For the first
         run (or if script does not have the required permissions), this method will
         ask the user to login with a browser window, and then save a pickle file with
         the credentials obtained.
 
-        For subsequent runs, this pickle file will be used directly, ensuring that the 
+        For subsequent runs, this pickle file will be used directly, ensuring that the
         user does not have to login for every run of this script.
 
         Returns
@@ -60,7 +63,7 @@ def select_teamdrive(service: Resource) -> str:
 
         Remarks
         --------
-        Will internally handle any error/unexpected input. The only value returned by 
+        Will internally handle any error/unexpected input. The only value returned by
         this method will be the id of the teamdrive that is to be used.
 
         Returns
@@ -80,7 +83,8 @@ def select_teamdrive(service: Resource) -> str:
     while True:
         result = service.drives().list(
             pageSize=100,
-            pageToken=nextPageToken).execute()
+            pageToken=nextPageToken
+        ).execute()
 
         for item in result['drives']:
             output = f'  {counter} ' + ('/' if counter % 2 else '\\')
@@ -109,7 +113,7 @@ def select_teamdrive(service: Resource) -> str:
     while True:
         print('Select a teamdrive from the list above.')
         try:
-            id = input('teamdrive > ')
+            id = input('teamdrive> ')
 
             if not match(r'^[0-9]+$', id):
                 # Handling the scenario if the input is not an integer. Using regex
@@ -130,3 +134,127 @@ def select_teamdrive(service: Resource) -> str:
         except ValueError:
             # Will reach here if the user enters a non-integer input
             print(f'\t{Fore.RED}Incorrect input detected. {Style.RESET_ALL}\n')
+
+
+def walk(origin_id: str, service: Resource, cur_path: str, item_details: Dict[str, str] = None):
+    """
+        Traverses directories in Google Drive and replicates the file/folder structure similar to
+        Google Drive.
+
+        This method will create an equvivalent `.strm` file for every video file found inside a
+        particular directory. The end result will be the complete replication of the entire directory
+        structure with just the video files with each file being an strm file pointing to the original
+        file on the network.
+
+        Parameters
+        -----------
+        origin_id: String containing the id of the original directory that is to be treated as the source.
+        Every directory present inside this directory will be traversed, and a `.strm` file will be generated
+        for every video file present inside this directory. \n
+        service: Instance of `Resource` object used to interact with Google Drive API. \n
+    """
+
+    if not isinstance(origin_id, str) or not isinstance(service, Resource):
+        raise TypeError('Unexpected argument type')
+
+    # If the directory in which the search is to be performed does not have info supplied,
+    # attempting to fetch info for the directory.
+    if not isinstance(item_details, dict):
+        item_details = service.files().get(
+            fileId=origin_id,
+            supportsAllDrives=True
+        ).execute()
+
+    # print(item_details)
+    if item_details['mimeType'] != 'application/vnd.google-apps.folder':
+        raise TypeError('Expected the id for a directory')
+
+    # Updating the current path to be inside the path where this directory is to be created.
+    cur_path = join(cur_path, item_details['name'])
+
+    # Creating the root directory for this search.
+    try:
+        mkdir(cur_path)
+    except:
+        pass
+
+    page_token = None
+
+    while True:
+        result = service.files().list(
+            pageSize=1000,
+            pageToken=page_token,
+            fields='files(name, id, mimeType, driveId)',
+            supportsAllDrives=True,
+            includeItemsFromAllDrives=True,
+            q=f"'{origin_id}' in parents"
+        ).execute()
+
+        # print(f'Found {len(result["files"])}')
+        for item in result['files']:
+            if item['mimeType'] == 'application/vnd.google-apps.folder':
+                # If the current object is a folder, recursively calling the same method.
+                walk(item['id'], service, cur_path, item)
+            elif 'video' in item['mimeType'] or match(r'.*\.(mkv|mp4)$', item['name']):
+                try:
+                    f = open(join(cur_path, item['name']+'.strm'), 'w+')
+                    f.write(
+                        f'plugin://plugin.googledrive/?action=play&item_id={item["id"]}&item_driveid={item["driveId"]}&driveid={item["driveId"]}&content_type=video'
+                    )
+
+                    f.close()
+                except:
+                    pass
+
+        if 'nextPageToken' not in result:
+            break
+
+
+if __name__ == '__main__':
+    # Starting by authenticating the connection.
+    service = authenticate()
+
+    destination = getcwd()
+    source = None
+
+    # Pattern(s) that are to be used to match against the source argument. The group is important since
+    # this pattern is also being used to extract the value from argument.
+    pattern_source = r'^--source=(.*)'
+    patter_dest = r'--dest="?(.*)"?'
+
+    # Looping over all arguments that are passed to the script. The first (zeroe-th) value shall be the
+    # name of the python script.
+    for i in range(len(sys.argv)):
+        if i == 0:
+            # Skipping the first arguemnt, this would be the name of the python script file.
+            continue
+
+        if match(pattern_source, sys.argv[i]) and not source:
+            # Pattern matching to select the source if the source is null. A better pattern match
+            # can be obtained by ensuring that the only accepted value for the source is
+            # alpha-numeric charater or hypen/underscores. Skipping this implementation for now as it
+            # requires a testing.
+
+            # Extracting id from the argument using substitution. Substituting everything from the
+            # argument string except for the value :p
+            source = sub(pattern_source, r'\1', sys.argv[i])
+        elif match(patter_dest, sys.argv[i]):
+            # Again, extracting the value using regex substitution.
+            destination = sub(patter_dest, r'\1', sys.argv[i])
+
+            if not isdir(destination):
+                print(f'Error: `{sys.argv[i]}` is not a directory.\n')
+                exit(10)  # Force quit.
+
+        else:
+            print(f'Unknown argument detected `{sys.argv[i]}`')
+            exit(10)  # Non-zero exit code to indicate error.
+
+    if not isinstance(source, str):
+        # If a source has not been set, asking the user to select a teamdrive as root.
+        source = select_teamdrive(service)
+
+    print(f'\n\tSaving the output at `{destination}`')
+
+    # Calling the method to walk through the drive directory.
+    walk(source, service, destination)
