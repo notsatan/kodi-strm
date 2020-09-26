@@ -5,7 +5,7 @@
 .vscode/
 
 # A bash script that I'm using to port the script on different systems
-**setup.sh
+# **setup.sh -- Adding this file too, might ease the setup for some people.
 
 # Configuration files to interact with Google Drive API.
 **/**.pickle

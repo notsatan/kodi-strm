@@ -15,6 +15,9 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import Resource, build
 
+files = 0
+directories = 0
+
 
 def authenticate() -> Resource:
     """
@@ -154,6 +157,8 @@ def walk(origin_id: str, service: Resource, cur_path: str, item_details: Dict[st
         service: Instance of `Resource` object used to interact with Google Drive API. \n
     """
 
+    global files, directories
+
     if not isinstance(origin_id, str) or not isinstance(service, Resource):
         raise TypeError('Unexpected argument type')
 
@@ -194,6 +199,7 @@ def walk(origin_id: str, service: Resource, cur_path: str, item_details: Dict[st
         for item in result['files']:
             if item['mimeType'] == 'application/vnd.google-apps.folder':
                 # If the current object is a folder, recursively calling the same method.
+                directories += 1
                 walk(item['id'], service, cur_path, item)
             elif 'video' in item['mimeType'] or match(r'.*\.(mkv|mp4)$', item['name']):
                 try:
@@ -203,6 +209,7 @@ def walk(origin_id: str, service: Resource, cur_path: str, item_details: Dict[st
                     )
 
                     f.close()
+                    files += 1
                 except:
                     pass
 
@@ -220,7 +227,7 @@ if __name__ == '__main__':
     # Pattern(s) that are to be used to match against the source argument. The group is important since
     # this pattern is also being used to extract the value from argument.
     pattern_source = r'^--source=(.*)'
-    patter_dest = r'--dest="?(.*)"?'
+    patter_dest = r'^--dest="?(.*)"?'
 
     # Looping over all arguments that are passed to the script. The first (zeroe-th) value shall be the
     # name of the python script.
@@ -258,3 +265,5 @@ if __name__ == '__main__':
 
     # Calling the method to walk through the drive directory.
     walk(source, service, destination)
+
+    print(f'Completed. Traversed through {directories} directories and {files} files.asdsdas')
