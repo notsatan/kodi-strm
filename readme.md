@@ -2,7 +2,7 @@
 ![Release Date][release-date]
 ![Language][language]
 ![License][license]
-![Issues][issues-url]
+![Code Size][code-size]
 
 <!-- PROJECT LOGO -->
 <br />
@@ -37,7 +37,7 @@
 ## Table of Contents
 - [Table of Contents](#table-of-contents)
 - [About The Project](#about-the-project)
-  - [What is a `.strm` file?](#what-is-a-strm-file)
+  - [What is a strm file?](#what-is-a-strm-file)
 - [Pre-Requisites](#pre-requisites)
 - [Setup](#setup)
 - [Usage](#usage)
@@ -47,6 +47,7 @@
   - [Scanning a particular folder](#scanning-a-particular-folder)
   - [Modifying the directory where strm files are generated](#modifying-the-directory-where-strm-files-are-generated)
     - [Getting Folder ID's](#getting-folder-ids)
+    - [Example; Using Custom Arguments](#example-using-custom-arguments)
   - [How is this script better than the existing add-on?](#how-is-this-script-better-than-the-existing-add-on)
 - [How does this script work](#how-does-this-script-work)
 - [Advanced Setup](#advanced-setup)
@@ -55,21 +56,24 @@
 - [Contributing](#contributing)
 - [License](#license)
 - [Acknowledgements](#acknowledgements)
+  - [Just some fun](#just-some-fun)
 
 
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-A simple python script to to complement the functionality of [Google Drive AddOn](https://kodi.tv/addon/music-add-ons-picture-add-ons-plugins-video-add-ons/google-drive) for Kodi.
+A simple python script to complement the functionality of [Google Drive AddOn](https://kodi.tv/addon/music-add-ons-picture-add-ons-plugins-video-add-ons/google-drive) for Kodi.
 
 For an add-on that [claims to be "*extremely fast*"](https://github.com/cguZZman/plugin.googledrive), I found the add-on to be quite slow (*and unreliable*). It crashes way too frequently, is slow, and gets stuck way too often (this happened frequently enough, to the point I decided to make this project just to solve this problem).
 
-The main purpose of this project is to generate `.strm` files for media file(s) present in a directory on Google Drive - and achieve this more reliably than the Kodi AddOn.
+The main purpose of this project is to generate strm files for media file(s) present in a directory on Google Drive - and achieve this more reliably than the Kodi AddOn.
 
-### What is a `.strm` file?
+### What is a strm file?
 
-In simple terms, *strm* files are usually created and used by multimedia applications (Kodi and Plex being the main examples). They are used to store URL(s), which is then used by the application to stream the actual media file using the URL.
+In simple terms, *strm* files refer to files having an extension of `.strm`. They usually created and used by multimedia applications (Kodi and Plex being the main examples). They are used to store URL(s).
+
+This URL is then used by the application to stream the actual media file when required.
 
 <br>
 
@@ -79,47 +83,49 @@ In simple terms, *strm* files are usually created and used by multimedia applica
 
 ## Setup
 1. Create a [Google Project](http://console.developers.google.com/) and [enable Google Drive API](https://developers.google.com/drive/api/v3/enable-drive-api).
-2. Once you enable the Drive API for your project, setup the cerdentials required to use the API.
-3. Download the credentials as a JSON file and rename them it as `credentials.json`.
-4. Move the credentials into the same directory containing the python script.
+2. Once you enable the Drive API for your project, setup credentials required to use this API.
+3. Download the credentials as a JSON file and rename the file as `credentials.json`.
+4. Move the `credentials,json` file into the same directory containing the python script.
 5. Install the python dependencies.
     <br> `pip install -r requirements.txt`
 6. Install [Kodi AddOn for Google Drive](https://kodi.tv/addon/music-add-ons-picture-add-ons-plugins-video-add-ons/google-drive) in your Kodi installation.
 7. Login to the add-on. Make sure that you use the same Google account while logging into this script and the Google add-on.
 
-Alternatively, for the fourth step, you can directly use the `setup.sh` or `setup.bat` scripts to get an efficient setup.
+Alternatively, for the fourth step, you can directly use the `setup.sh` or `setup.bat` scripts and have them create an efficient setup for you.
 
 > #### What do the setup scripts do?
 >
 > The setup script will;
 > * Update `pip`
 > * Install `virtualenv`
-> * Create a virtual environment as a directory named `.venv`
-> * Install required packages inside this virtual environment.
+> * Create a virtual environment named `.venv`
+> * Install required packages into this virtual environment.
 
-While anyone is free to use them, do note that the setup scripts are primarily for my use (to quickly setup a system for usage/testing/debugging) - and so are not guranteed to work with every OS/system/distro.
+While anyone is free to use the direct setup files, do note that they are primarily for my use (to quickly setup a system for usage/testing/debugging) - and are not guaranteed to work in your system.
 
 ## Usage
 
-Executing the python script directly (without custom arguments) will fetch a list of all teamdrives to which the account has access - allowing you to select a teamdrive from this list which will then be scanned, and strm files for all media files found in this source will be created.
+Executing the python script directly (without custom arguments) will fetch a list of all teamdrives to which the account has access -- allowing you to select a teamdrive from this list which will then be scanned for media files.
 
 Alternatively, you can pass [custom arguments](#custom-arguments) to the script to scan a particular folder, or to modify the directory where the strm files are stored after being generated.
 
-Once the script finishes generating the strm files after a scan, you can add this [directory as a source](https://kodi.wiki/view/Adding_video_sources) in your Kodi installation. For most practical purposes, Kodi will treat these `.strm` files as actual media files.
+Once the script finishes generating strm files after a scan, add the resulting [directory as a source](https://kodi.wiki/view/Adding_video_sources) in your Kodi installation. From there on, Kodi will treat these `.strm` files as actual media files and will be able to scan/play them normally.
 
-Note; Once you're comfortable with the usage of this script, you might want to take a look at the [advanced setup](#advanced-setup) section.
+> Note: 
+> 
+> If you are unable to play the media files with Kodi, make sure that you have installed the [Kodi AddOn for Google Drive](https://kodi.tv/addon/music-add-ons-picture-add-ons-plugins-video-add-ons/google-drive) and have logged into the add-on with the **same** Google Account that you are using for this script.
+
+Once you're comfortable with the usage of this script, you might want to take a look at the [advanced setup](#advanced-setup) section.
 
 ### Generating strm files
 
-Running the script without any custom arguments will fetch a list of all team-drives that are connected to the account, selecting a teamdrive from this list will make the script scan the contents of the particular teamdrive.
+Running the python script without any custom arguments will fetch a list of all team-drives that are connected to the account, selecting a teamdrive from this list will make the script scan the contents of the particular teamdrive.
 
 ### Where are the strm files stored?
 
-By default, the `.strm` files generated after a scan are stored in the **working directory**.
+By default, the strm files generated after a scan are stored in the **working directory**. Use `pwd` in Unix-based systems, or `cd` in Windows get the location of current working directory. 
 
-In case a complete teamdrive is scanned, the generated strm files will be stored inside a directory named `Drive`. Alternatively, after scanning a particular folder on Google Drive, the generated files will be stored in a directory of the same name as the folder scanned.
-
-Use `pwd` in Unix-based systems, or `dir` in Windows get the location of current working directory 
+Look for a directory with the **same name as the source** (the Google folder/teamdrive) scanned.
 
 ## Custom Arguments
 
@@ -131,16 +137,16 @@ Note: These flags can only be passed if you execute the script from the terminal
 
 ### Scanning a particular folder
 
-Add the `--source=<folder-id>` flag while executing the python script to force it to scan a particular directory.
+Add `--source=<folder-id>` flag while executing the python script to force it to scan a particular directory. [Example](#example-using-custom-arguments)
 
 > Note: Check [Getting the Folder ID](#getting-folder-ids) section to get the folder id for a particular folder in Google Drive.
 
 
 ### Modifying the directory where strm files are generated
 
-Add the `--dest=<destination>` flag while executing the python script to store the generated strm files in a particular directory.
+Add `--dest=<destination>` flag while executing the python script to store the generated strm files in a particular directory. Make sure that the destination points to an existing directory. 
 
-If the destination contains a space, wrap it inside the double quotes before adding it as a flag.
+Inside the destination directory, this script will make a directory with the same name as the source folder on Google Drive. If the destination contains a space, wrap it inside the double quotes before adding it as a flag.
 
 #### Getting Folder ID's
 
@@ -150,25 +156,27 @@ For example, in the URL `https://drive.google.com/drive/folders/0AOC6NXsE2KJMUk9
 
 This method can also be used to get the ID of a particular TeamDrive and use it as a [custom argument](#scanning-a-particular-folder) to directly scan the teamdrive.
 
-> #### Example - Using Custom Arguments
-> 
-> Running the following command will scan a particular folder on Google Drive, and place the store the generated strm files inside the directory `/home/kodi-libraries` instead of resorting to the defaults
->
-> `python strm-generator.py --source=0AOC6NXsE2KJMUk9PVA --dest="/home/kodi libraries"`
+#### Example; Using Custom Arguments
+ 
+Running the following command will scan the folder `0AOC6NXsE2KJMUk9PVA` and generate strm files inside the directory `/home/kodi libraries` instead of resorting to the defaults.
+
+`python strm-generator.py --source=0AOC6NXsE2KJMUk9PVA --dest="/home/kodi libraries"`
+
+If you're unsure about using custom arguments, feel free to just replace the values in the command above with **valid** values, and you're good to go!
 
 ---
 
 ### How is this script better than the existing add-on?
 
-To be honest, I'm not completely sure of this myself. While the add-on is open source, I'm too lazy to take a look at the code and determine why exactly this happens.
+Based on the tests I have run upto now, this script didn't crash or lag, and was quite a bit faster than the add-on. Honestly, I'm not sure about why this happens. While the add-on is [open source](https://github.com/cguZZman/plugin.googledrive), I'm yet to take a look at the source code and determine why.
 
-What I do know is, this script is as simple as it can be. There is no clever hack, or trick to make this script more robust. Yet, all the tests I ran seem to deny this, while the add-on crashes frequently, this script works perfectly fine (and no, this is **definitely not** because of hardware limitation at my end).
+What I do know is, this script is as simple as it can be. There is no clever hack, or any trick present. Yet, all the tests I ran prove that this script is somehow better than the add-on (and no, this is **definitely not** because of any hardware limitation at my end).
 
-The only cause I can draw for this difference is that this has got something to do with Kodi (or the integration between the add-on and Kodi). Regardless, I noticed a flaw, and wrote a simple script to overcome it effectively.
+It is possible that this difference is being caused by Kodi (or the integration between the add-on and Kodi). Regardless, I noticed a flaw, and wrote a simple script to overcome it effectively.
 
 ## How does this script work
 
-The basic functioning of this script revolves around traversing a directory on Google Drive, iterating through each file present in this dirctory and generating strm files for any media file. An important part of this is to be able to recognize media files.
+The basic functioning of this script revolves around traversing a directory on Google Drive, iterating through each file present in this directory and generating an equivalent `.strm` file for every media file. An important part of this is to be able to recognize media files.
 
 The most important step while creating a strm file is to ensure that the contents of the file are stored in such a manner that they can be parsed by the Google Drive add-on.
 
@@ -198,9 +206,9 @@ In case someone wants to replicate a similar setup as mine, here are some useful
 <!-- ROADMAP -->
 ## Roadmap
 
-The main aim for this project isn't to replace the exising Google Drive AddOn, but to build upon it and fix the flaws. As such, a large part of what I found missing in the add-on has already been fixed - namely, speed and reliablitly.
+The main aim for this project isn't to replace the exising Google Drive AddOn, but to build upon it and fix the flaws. As such, a large part of what I found missing in the add-on has already been fixed -- namely, speed and reliablitly.
 
-Based on the tests I've run at my end, this script is ~20% faster than the Google Drive Add-On, and is a lot more reliable (no crashes so far).
+Based on the tests I've run, this script is ~20% faster than the Google Drive Add-On, and is a lot more reliable (no crashes so far).
 
 > *For the curious, yes, I ran the test on the exact same source without any modifications. The results are as accurate as possible.*
 
@@ -210,7 +218,7 @@ Based on the tests I've run at my end, this script is ~20% faster than the Googl
 
 ## Contributing
 
-Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **extremely appreciated**.
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions made are **extremely appreciated**.
 
 1. Fork the Project
 2. Create your Feature Branch (`git checkout -b feature/new-feature`)
@@ -225,7 +233,13 @@ Distributed under the MIT License. See [`LICENSE`](./LICENSE). for more informat
 * [Img Shields](https://shields.io)
 * [Google API Python Client](https://github.com/googleapis/google-api-python-client)
 * [Coloroma](https://github.com/tartley/colorama)
- 
+* Special credits to [Satan](https://github.com/not-satan) for being annoying enough to force me to work on this repo as a priority.
+
+<br>
+
+---
+### Just some fun
+![Random Meme](https://github.com/demon-rem/res/blob/master/memes/S9krNOFfLlLdXPvm00ZQGMzRah.jpg?raw=true)
 
 [code-size]: https://img.shields.io/github/languages/code-size/demon-rem/kodi-strm?style=for-the-badge
 [language]: https://img.shields.io/github/languages/top/demon-rem/kodi-strm?style=for-the-badge
