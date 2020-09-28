@@ -2,7 +2,8 @@
 
 import sys
 from os import getcwd, mkdir, system
-from os.path import exists, join, isdir
+from shutil import rmtree
+from os.path import exists, isdir, join
 from pickle import dump as dump_pickle
 from pickle import load as load_pickle
 from re import match, sub
@@ -139,7 +140,7 @@ def select_teamdrive(service: Resource) -> str:
             print(f'\t{Fore.RED}Incorrect input detected. {Style.RESET_ALL}\n')
 
 
-def walk(origin_id: str, service: Resource, cur_path: str, item_details: Dict[str, str] = None):
+def walk(origin_id: str, service: Resource, cur_path: str, item_details: Dict[str, str]):
     """
         Traverses directories in Google Drive and replicates the file/folder structure similar to
         Google Drive.
@@ -162,14 +163,6 @@ def walk(origin_id: str, service: Resource, cur_path: str, item_details: Dict[st
     if not isinstance(origin_id, str) or not isinstance(service, Resource):
         raise TypeError('Unexpected argument type')
 
-    # If the directory in which the search is to be performed does not have info supplied,
-    # attempting to fetch info for the directory.
-    if not isinstance(item_details, dict):
-        item_details = service.files().get(
-            fileId=origin_id,
-            supportsAllDrives=True
-        ).execute()
-
     # print(item_details)
     if item_details['mimeType'] != 'application/vnd.google-apps.folder':
         raise TypeError('Expected the id for a directory')
@@ -189,7 +182,7 @@ def walk(origin_id: str, service: Resource, cur_path: str, item_details: Dict[st
         result = service.files().list(
             pageSize=1000,
             pageToken=page_token,
-            fields='files(name, id, mimeType, driveId)',
+            fields='files(name, id, mimeType, teamDriveId)',
             supportsAllDrives=True,
             includeItemsFromAllDrives=True,
             q=f"'{origin_id}' in parents"
@@ -203,12 +196,14 @@ def walk(origin_id: str, service: Resource, cur_path: str, item_details: Dict[st
                 walk(item['id'], service, cur_path, item)
             elif 'video' in item['mimeType'] or match(r'.*\.(mkv|mp4)$', item['name']):
                 try:
-                    f = open(join(cur_path, item['name']+'.strm'), 'w+')
-                    f.write(
-                        f'plugin://plugin.googledrive/?action=play&item_id={item["id"]}&item_driveid={item["driveId"]}&driveid={item["driveId"]}&content_type=video'
-                    )
+                    file_content = f'plugin://plugin.googledrive/?action=play&item_id={item["id"]}'
+                    if 'teamDriveId' in item:
+                        # Adding this part only for items present in a teamdrive.
+                        file_content += f'&item_driveid={item["teamDriveId"]}&teamDriveId={item["teamDriveId"]}'
 
-                    f.close()
+                    file_content += f'&content_type=video'
+                    with open(join(cur_path, item['name']+'.strm'), 'w+') as f:
+                        f.write(file_content)
                     files += 1
                 except:
                     pass
@@ -261,9 +256,26 @@ if __name__ == '__main__':
         # If a source has not been set, asking the user to select a teamdrive as root.
         source = select_teamdrive(service)
 
+    # Attempting to get the details on the folder/teamdrive being used as the source.
+    item_details = service.files().get(
+        fileId=source,
+        supportsAllDrives=True
+    ).execute()
+
+    if 'teamDriveId' in item_details and item_details['id'] == item_details['teamDriveId']:
+        # If the source is a teamdrive, attempting to fetch details for the teamdrive instead.
+        item_details = service.drives().get(
+            teamDriveId=item_details['teamDriveId']
+        ).execute()
+
+    # Clearing the destination directory (if it exists).
+    final_path=join(destination, item_details['name'])
+    if isdir(final_path):
+        rmtree(final_path)
+
     print(f'\n\tSaving the output at `{destination}`')
 
     # Calling the method to walk through the drive directory.
-    walk(source, service, destination)
+    walk(source, service, destination, item_details)
 
-    print(f'Completed. Traversed through {directories} directories and {files} files.asdsdas')
+    print(f'Completed. Traversed through {directories} directories and {files} files.')
