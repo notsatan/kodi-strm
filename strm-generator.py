@@ -2,7 +2,7 @@
 
 import sys
 from os import getcwd, mkdir, system
-from os.path import exists, isdir, join, basename, dirname
+from os.path import basename, dirname, exists, isdir, join
 from pickle import dump as dump_pickle
 from pickle import load as load_pickle
 from re import match, sub
@@ -332,7 +332,7 @@ if __name__ == '__main__':
 
     # TODO: Might want to differentiate between platforms here. Especially for custom directories.
     pattern_custom_dir = r'^--rootname="?(.*)"?$'
-    patter_dest = r'^--dest="?(.*)"?'
+    pattern_dest = r'^--dest="?(.*)"?$'
 
     # Looping over all arguments that are passed to the script. The first (zeroe-th) value shall be the
     # name of the python script.
@@ -350,9 +350,9 @@ if __name__ == '__main__':
             # Extracting id from the argument using substitution. Substituting everything from the
             # argument string except for the value :p
             source = match(pattern_source, sys.argv[i]).groups()[0]
-        elif match(patter_dest, sys.argv[i]):
+        elif match(pattern_dest, sys.argv[i]):
             # Again, extracting the value using regex substitution.
-            destination = match(patter_dest, sys.argv[i]).groups()[0]
+            destination = match(pattern_dest, sys.argv[i]).groups()[0]
 
             if not isdir(destination):
                 print(f'Error: `{sys.argv[i]}` is not a directory.\n')
