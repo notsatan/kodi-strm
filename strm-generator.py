@@ -2,7 +2,7 @@
 
 import sys
 from os import getcwd, mkdir, system
-from os.path import exists, isdir, join
+from os.path import exists, isdir, join, basename, dirname
 from pickle import dump as dump_pickle
 from pickle import load as load_pickle
 from re import match, sub
@@ -93,10 +93,10 @@ def update(files: int, directories: int, skipped: int, size: int, out_stream):
         sizes[counter]
     )
 
-    out_stream[0] = f'Directories Scanned: {directories}'
-    out_stream[1] = f'Files Scanned: {files}'
-    out_stream[2] = f'Bytes Scanned: {readable_size}'
-    out_stream[3] = f'Files Skipped: {skipped}'
+    out_stream[2] = f'Directories Scanned: {directories}'
+    out_stream[3] = f'Files Scanned: {files}'
+    out_stream[4] = f'Bytes Scanned: {readable_size}'
+    out_stream[5] = f'Files Skipped: {skipped}'
 
 
 def select_teamdrive(service: Resource) -> str:
@@ -179,7 +179,32 @@ def select_teamdrive(service: Resource) -> str:
             print(f'\t{Fore.RED}Incorrect input detected. {Style.RESET_ALL}\n')
 
 
-def walk(origin_id: str, service: Resource, cur_path: str, item_details: Dict[str, str], out_stream, push_updates: bool):
+def shrink_path(full_path: str, max_len: int = 70) -> str:
+    """
+        Shrinks the path name to fit into a fixed number of characters.
+
+        Parameters
+        -----------
+        full_path: String containing the full path that is to be printed. \n
+        max_len: Integer containing the maximum length for the final path. Should be
+        more than 10 characters. Default: 15 \n
+
+        Returns
+        --------
+        String containing path after shrinking it. Will be atmost `max_len` characters
+        in length.
+    """
+
+    if len(full_path) <= max_len:
+        # Directly return the path if it fits within the maximum length allowed.
+        return full_path
+
+    allowed_len = max_len - 6
+    return f'{full_path[:int(allowed_len / 2)]}......{full_path[-int(allowed_len / 2):]}'
+
+
+def walk(origin_id: str, service: Resource, orig_path: str, item_details: Dict[str, str], out_stream,
+         push_updates: bool, drive_path='~'):
     """
         Traverses directories in Google Drive and replicates the file/folder structure similar to
         Google Drive.
@@ -195,7 +220,7 @@ def walk(origin_id: str, service: Resource, cur_path: str, item_details: Dict[st
         Every directory present inside this directory will be traversed, and a `.strm` file will be generated
         for every video file present inside this directory. \n
         service: Instance of `Resource` object used to interact with Google Drive API. \n
-        cur_path: Path to the directory in which strm files are to be placed once generated. This directory
+        orig_path: Path to the directory in which strm files are to be placed once generated. This directory
         will be made by THIS method internally. \n
         item_details: Dictionary containing details of the directory being scanned from Google drive. \n
         out_stream: Dictioanry object to which the output is to be written to once (if updates are needed). \n
@@ -208,12 +233,16 @@ def walk(origin_id: str, service: Resource, cur_path: str, item_details: Dict[st
         raise TypeError('Unexpected argument type')
 
     # Updating the current path to be inside the path where this directory is to be created.
-    cur_path = join(cur_path, item_details['name'])
+    cur_path = join(orig_path, item_details['name'])
 
     # Creating the root directory.
     mkdir(cur_path)
 
     page_token = None
+
+    if push_updates:
+        out_stream[0] = f'Scanning Directory: {shrink_path(drive_path)}/'
+        out_stream[1] = '\n'  # Blank line
 
     while True:
         result = service.files().list(
@@ -242,10 +271,11 @@ def walk(origin_id: str, service: Resource, cur_path: str, item_details: Dict[st
                 walk(
                     origin_id=item['id'],
                     service=service,
-                    cur_path=cur_path,
+                    orig_path=cur_path,
                     item_details=item,
                     out_stream=out_stream,
-                    push_updates=push_updates
+                    push_updates=push_updates,
+                    drive_path=f'{join(drive_path, item["name"])}'
                 )
             elif 'video' in item['mimeType'] or match(r'.*\.(mkv|mp4)$', item['name']):
                 # Scanning the file, and creating an equivalent strm file if the file is a media file
@@ -293,12 +323,16 @@ if __name__ == '__main__':
     destination = getcwd()
     source = None
     updates = True  # True by default.
+    dir_name = None  # The name of the directory to store the strm files in.
 
     # Pattern(s) that are to be used to match against the source argument. The group is important since
     # this pattern is also being used to extract the value from argument.
     pattern_source = r'^--source=(.*)'
+    pattern_output = r'^--updates="?(off|on)"?$'
+
+    # TODO: Might want to differentiate between platforms here. Especially for custom directories.
+    pattern_custom_dir = r'^--rootname="?(.*)"?$'
     patter_dest = r'^--dest="?(.*)"?'
-    pattern_output = r'^--updates=(off|on)$'
 
     # Looping over all arguments that are passed to the script. The first (zeroe-th) value shall be the
     # name of the python script.
@@ -329,7 +363,8 @@ if __name__ == '__main__':
             # updates are explicitly being allowed.
             if match(pattern_output, sys.argv[i]).groups()[0] == 'off':
                 updates = False
-
+        elif match(pattern_custom_dir, sys.argv[i]):
+            dir_name = match(pattern_custom_dir, sys.argv[i]).groups()[0]
         else:
             print(f'Unknown argument detected `{sys.argv[i]}`')
             exit(10)  # Non-zero exit code to indicate error.
@@ -350,22 +385,26 @@ if __name__ == '__main__':
             driveId=item_details['teamDriveId']
         ).execute()
 
+    if dir_name is not None:
+        # If the name of the root directory is not set, using the name of the teamdrive/drive.
+        item_details['name'] = dir_name
+
     # Clearing the destination directory (if it exists).
-    final_path = join(destination, item_details['name'])
+    final_path = join(destination, dir_name)
     if isdir(final_path):
         rmtree(final_path)
 
     print()  # Empty print.
 
     # Calling the method to walk through the drive directory.
-    with output(output_type='list', initial_len=4, interval=0) as out_stream:
+    with output(output_type='list', initial_len=6, interval=0) as out_stream:
         # Creating the output object here to ensure that the same object is being used
         # for updates internally.
 
         walk(
             origin_id=source,
             service=service,
-            cur_path=destination,
+            orig_path=destination,
             item_details=item_details,
             out_stream=out_stream,
             push_updates=updates
