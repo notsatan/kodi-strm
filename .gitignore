@@ -1,5 +1,6 @@
 # The virtual environment.
 .venv/
+venv/
 
 # Cache files stored by VS Code.
 .vscode/
