@@ -287,7 +287,7 @@ def walk(origin_id: str, service: Resource, orig_path: str, item_details: Dict[s
                 file_content = f'plugin://plugin.googledrive/?action=play&item_id={item["id"]}'
                 if 'teamDriveId' in item:
                     # Adding this part only for items present in a teamdrive.
-                    file_content += f'&item_driveid={item["teamDriveId"]}&teamDriveId={item["teamDriveId"]}'
+                    file_content += f'&item_driveid={item["teamDriveId"]}&driveId={item["teamDriveId"]}'
 
                 file_content += f'&content_type=video'
                 with open(join(cur_path, item['name']+'.strm'), 'w+') as f:
