@@ -41,7 +41,7 @@ def authenticate() -> Resource:
     creds: Optional[Credentials] = None
 
     # The scope that is to be requested.
-    SCOPES = ['https://www.googleapis.com/auth/drive']
+    SCOPES = ['https://www.googleapis.com/auth/drive.readonly']
 
     if exists('token.pickle'):
         with open('token.pickle', 'rb') as token:
@@ -190,7 +190,7 @@ def shrink_path(full_path: str, max_len: int = 70) -> str:
 
         Returns
         --------
-        String containing path after shrinking it. Will be atmost `max_len` characters
+        String containing path after shrinking it. Will be at most `max_len` characters
         in length.
     """
 
