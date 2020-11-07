@@ -155,16 +155,16 @@ def select_teamdrive(service: Resource) -> str:
     while True:
         print('Select a teamdrive from the list above.')
         try:
-            id = input('teamdrive> ')
+            td_id = input('teamdrive> ')
 
-            if not match(r'^[0-9]+$', id):
+            if not match(r'^[0-9]+$', td_id):
                 # Handling the scenario if the input is not an integer. Using regex
                 # since direct type-cast to float will also accept floating-point,
                 # which would be incorrect.
                 raise ValueError
 
-            id = int(id)
-            if id <= 0 or id > len(teamdrives):
+            td_id = int(td_id)
+            if td_id <= 0 or td_id > len(teamdrives):
                 # Handling the scenario if the input is not within the accepted range.
                 # The zero-eth element of this list is garbage value, thus discarding
                 # the input even at zero.
@@ -172,7 +172,7 @@ def select_teamdrive(service: Resource) -> str:
 
             # If the flow-of-control reaches here, the returning the id of the teamdrive
             # located at this position.
-            return teamdrives[id]
+            return teamdrives[td_id]
         except ValueError:
             # Will reach here if the user enters a non-integer input
             print(f'\t{Fore.RED}Incorrect input detected. {Style.RESET_ALL}\n')
@@ -209,10 +209,10 @@ def walk(origin_id: str, service: Resource, orig_path: str, item_details: Dict[s
         Traverses directories in Google Drive and replicates the file/folder structure similar to
         Google Drive.
 
-        This method will create an equvivalent `.strm` file for every video file found inside a
-        particular directory. The end result will be the complete replication of the entire directory
-        structure with just the video files with each file being an strm file pointing to the original
-        file on the network.
+        This method will create an equivalent `.strm` file for every media file found in a
+        particular directory. The result will be the complete replication of entire directory
+        structure with an strm file being generated for every media file, pointing to the original
+        file on the internet.
 
         Parameters
         -----------
@@ -342,7 +342,7 @@ def main():
         if match(pattern_source, sys.argv[i]) and not source:
             # Pattern matching to select the source if the source is null. A better pattern match
             # can be obtained by ensuring that the only accepted value for the source is
-            # alpha-numeric charater or hypen/underscores. Skipping this implementation for now.
+            # alpha-numeric charter or hhyphenunderscores. Skipping this implementation for now.
 
             # Extracting id from the argument using substitution. Substituting everything from the
             # argument string except for the value :p
@@ -383,8 +383,12 @@ def main():
         ).execute()
 
     if dir_name is not None:
-        # If the name of the root directory is not set, using the name of the teamdrive/drive.
+        # If the directory name is already set, i.e. it has been supplied as a command-line argument
+        # setting the name in the dictionary to be this custom name.
         item_details['name'] = dir_name
+    else:
+        # If the name of the root directory is not set, using the name of the teamdrive/drive.
+        dir_name = item_details['name']
 
     # Clearing the destination directory (if it exists).
     final_path = join(destination, dir_name)
