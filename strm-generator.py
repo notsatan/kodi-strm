@@ -1,13 +1,12 @@
 # The main script responsible for generating .strm files as needed.
 
 import sys
-from os import getcwd, mkdir, system
-from os.path import basename, dirname, exists, isdir, join
+from os import getcwd, mkdir
+from os.path import exists, isdir, join
 from pickle import dump as dump_pickle
 from pickle import load as load_pickle
-from re import match, sub
+from re import match
 from shutil import rmtree
-from time import sleep
 from typing import Dict, List, Optional
 
 from colorama import Fore, Style
@@ -38,7 +37,7 @@ def authenticate() -> Resource:
         An instance of `Resource` that can be used to interact with the Google Drive API.
     """
 
-    # Simple declartion, will be populated if credentials are present.
+    # Simple declaration, will be populated if credentials are present.
     creds: Optional[Credentials] = None
 
     # The scope that is to be requested.
@@ -79,7 +78,7 @@ def update(files: int, directories: int, skipped: int, size: int, out_stream):
     # The value of `size` will be an integer containing the raw size of the file(s) traversed
     # in bytes. Starting by converting this into a readable format.
 
-    # An array size units. Will be used to convert raw size into a readble format.
+    # An array size units. Will be used to convert raw size into a readable format.
     sizes = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB']
 
     counter = 0
@@ -115,7 +114,7 @@ def select_teamdrive(service: Resource) -> str:
     """
 
     # Initializing as non-zero integer to ensure that the loop runs once.
-    nextPageToken: str = None
+    nextPageToken: Optional[str] = None
 
     # Creating a list with the first element filled. Since the numbers being displayed
     # on the screen start from 1, filling the first element of the list with trash
@@ -130,10 +129,10 @@ def select_teamdrive(service: Resource) -> str:
         ).execute()
 
         for item in result['drives']:
-            output = f'  {counter} ' + ('/' if counter % 2 else '\\')
-            output += f'\t{item["name"]}{Style.RESET_ALL}'
+            td_list = f'  {counter} ' + ('/' if counter % 2 else '\\')
+            td_list += f'\t{item["name"]}{Style.RESET_ALL}'
 
-            print(f'{Fore.GREEN if counter % 2 else Fore.CYAN}{output}')
+            print(f'{Fore.GREEN if counter % 2 else Fore.CYAN}{td_list}')
 
             # Adding the id for this teamdrive to the list of teamdrives.
             teamdrives.append(item['id'])
@@ -146,7 +145,7 @@ def select_teamdrive(service: Resource) -> str:
             if not nextPageToken:
                 break
         except KeyError:
-            # Key error will occur if there is no nextpage token -- breaking out of
+            # Key error will occur if there is no next page token -- breaking out of
             # the loop in such scenario.
             break
 
@@ -156,16 +155,16 @@ def select_teamdrive(service: Resource) -> str:
     while True:
         print('Select a teamdrive from the list above.')
         try:
-            id = input('teamdrive> ')
+            td_id = input('teamdrive> ')
 
-            if not match(r'^[0-9]+$', id):
+            if not match(r'^[0-9]+$', td_id):
                 # Handling the scenario if the input is not an integer. Using regex
                 # since direct type-cast to float will also accept floating-point,
                 # which would be incorrect.
                 raise ValueError
 
-            id = int(id)
-            if id <= 0 or id > len(teamdrives):
+            td_id = int(td_id)
+            if td_id <= 0 or td_id > len(teamdrives):
                 # Handling the scenario if the input is not within the accepted range.
                 # The zero-eth element of this list is garbage value, thus discarding
                 # the input even at zero.
@@ -173,7 +172,7 @@ def select_teamdrive(service: Resource) -> str:
 
             # If the flow-of-control reaches here, the returning the id of the teamdrive
             # located at this position.
-            return teamdrives[id]
+            return teamdrives[td_id]
         except ValueError:
             # Will reach here if the user enters a non-integer input
             print(f'\t{Fore.RED}Incorrect input detected. {Style.RESET_ALL}\n')
@@ -203,27 +202,26 @@ def shrink_path(full_path: str, max_len: int = 70) -> str:
     return f'{full_path[:int(allowed_len / 2)]}......{full_path[-int(allowed_len / 2):]}'
 
 
-def walk(origin_id: str, service: Resource, orig_path: str, item_details: Dict[str, str], out_stream,
+def walk(origin_id: str, service: Resource, orig_path: str, item_details: Dict[str, str],
+         out_stream,
          push_updates: bool, drive_path='~'):
     """
         Traverses directories in Google Drive and replicates the file/folder structure similar to
         Google Drive.
 
-        This method will create an equvivalent `.strm` file for every video file found inside a
-        particular directory. The end result will be the complete replication of the entire directory
-        structure with just the video files with each file being an strm file pointing to the original
-        file on the network.
+        This method will create an equivalent `.strm` file for every media file found in a
+        particular directory. The result will be the complete replication of entire directory
+        structure with an strm file being generated for every media file, pointing to the original
+        file on the internet.
 
         Parameters
         -----------
-        origin_id: String containing the id of the original directory that is to be treated as the source.
-        Every directory present inside this directory will be traversed, and a `.strm` file will be generated
-        for every video file present inside this directory. \n
+        origin_id: String containing the id of the root/source directory. \n
         service: Instance of `Resource` object used to interact with Google Drive API. \n
-        orig_path: Path to the directory in which strm files are to be placed once generated. This directory
-        will be made by THIS method internally. \n
-        item_details: Dictionary containing details of the directory being scanned from Google drive. \n
-        out_stream: Dictioanry object to which the output is to be written to once (if updates are needed). \n
+        orig_path: Path to the directory in which strm files are to be placed once generated. This
+        directory will be made by THIS method internally. \n
+        item_details: Dictionary containing details of the directory being scanned from Drive. \n
+        out_stream: Dictionary to which the output is to be written to once (during updates). \n
         push_updates: Boolean indicating if updates are to be pushed to the screen or not. \n
     """
 
@@ -246,7 +244,7 @@ def walk(origin_id: str, service: Resource, orig_path: str, item_details: Dict[s
 
     while True:
         result = service.files().list(
-            # Getting the maximum number of items avaiable in a single API call
+            # Getting the maximum number of items available in a single API call
             # to reduce the calls required.
             pageSize=1000,
             pageToken=page_token,
@@ -254,7 +252,7 @@ def walk(origin_id: str, service: Resource, orig_path: str, item_details: Dict[s
             # The fields that are to be included in the response.
             fields='files(name, id, mimeType, teamDriveId, size)',
 
-            # Getting itesm from all drives, this allows scanning team-drives too.
+            # Getting item from all drives, this allows scanning team-drives too.
             supportsAllDrives=True,
             includeItemsFromAllDrives=True,
 
@@ -278,28 +276,28 @@ def walk(origin_id: str, service: Resource, orig_path: str, item_details: Dict[s
                     drive_path=f'{join(drive_path, item["name"])}'
                 )
             elif 'video' in item['mimeType'] or match(r'.*\.(mkv|mp4)$', item['name']):
-                # Scanning the file, and creating an equivalent strm file if the file is a media file
-                # Since the mime-type of files in drive can be modified externally, scanning the file
-                # as a media file if the file has an extension of `.mp4` or `.mkv`.
+                # Scanning the file, creating an equivalent strm file if the file is a media file
+                # Since the mime-type of files in drive can be modified externally, scanning a file
+                # as a media file even if it has an extension of `.mp4` or `.mkv`.
 
-                # Forming the string that is to be placed inside the strm file to ensure that the file
-                # can be used by the drive add-on.
+                # Creating string to be placed inside the strm file to ensure that the file can be
+                # parsed by the drive add-on.
                 file_content = f'plugin://plugin.googledrive/?action=play&item_id={item["id"]}'
                 if 'teamDriveId' in item:
                     # Adding this part only for items present in a teamdrive.
-                    file_content += f'&item_driveid={item["teamDriveId"]}&driveId={item["teamDriveId"]}'
+                    file_content += f'&item_driveid={item["teamDriveId"]}' \
+                                    f'&driveid={item["teamDriveId"]}'
 
                 file_content += f'&content_type=video'
-                with open(join(cur_path, item['name']+'.strm'), 'w+') as f:
+                with open(join(cur_path, item['name'] + '.strm'), 'w+') as f:
                     f.write(file_content)
 
                 # Updating the counter for files scanned as well as bytes scanned.
                 files_scanned += 1
                 bytes_scanned += int(item['size'])
             else:
-                # Skipping the file if the file is not a video file (i.e. mime type does not match), and the
-                # file does not have an extension of `.mp4` or `.mkv`. Updating the counter to increment the
-                # number of files that have been skipped from the scan.
+                # Skipping the file if the file is not a video file. Updating counter to increment
+                # number of files that have been skipped.
                 files_skipped += 1
 
             if push_updates:
@@ -316,7 +314,7 @@ def walk(origin_id: str, service: Resource, orig_path: str, item_details: Dict[s
             break
 
 
-if __name__ == '__main__':
+def main():
     # Starting by authenticating the connection.
     service = authenticate()
 
@@ -325,8 +323,8 @@ if __name__ == '__main__':
     updates = True  # True by default.
     dir_name = None  # The name of the directory to store the strm files in.
 
-    # Pattern(s) that are to be used to match against the source argument. The group is important since
-    # this pattern is also being used to extract the value from argument.
+    # Pattern(s) to be used to match against the source argument. The group(s) are to extract
+    # the value from (command-line) argument.
     pattern_source = r'^--source=(.*)'
     pattern_output = r'^--updates="?(off|on)"?$'
 
@@ -334,18 +332,17 @@ if __name__ == '__main__':
     pattern_custom_dir = r'^--rootname="?(.*)"?$'
     pattern_dest = r'^--dest="?(.*)"?$'
 
-    # Looping over all arguments that are passed to the script. The first (zeroe-th) value shall be the
+    # Looping over all arguments passed to the script. The first (zeroth) value shall be the
     # name of the python script.
     for i in range(len(sys.argv)):
         if i == 0:
-            # Skipping the first arguemnt, this would be the name of the python script file.
+            # Skipping the first argument, this would be the name of the python script file.
             continue
 
         if match(pattern_source, sys.argv[i]) and not source:
             # Pattern matching to select the source if the source is null. A better pattern match
             # can be obtained by ensuring that the only accepted value for the source is
-            # alpha-numeric charater or hypen/underscores. Skipping this implementation for now as it
-            # requires a testing.
+            # alpha-numeric charter or hyphen/underscores. Skipping this implementation for now.
 
             # Extracting id from the argument using substitution. Substituting everything from the
             # argument string except for the value :p
@@ -386,8 +383,12 @@ if __name__ == '__main__':
         ).execute()
 
     if dir_name is not None:
-        # If the name of the root directory is not set, using the name of the teamdrive/drive.
+        # If the directory name is already set, i.e. it has been supplied as a command-line argument
+        # setting the name in the dictionary to be this custom name.
         item_details['name'] = dir_name
+    else:
+        # If the name of the root directory is not set, using the name of the teamdrive/drive.
+        dir_name = item_details['name']
 
     # Clearing the destination directory (if it exists).
     final_path = join(destination, dir_name)
@@ -411,3 +412,7 @@ if __name__ == '__main__':
         )
 
     print(f'\n\tTask completed. Saved the output at `{final_path}`')
+
+
+if __name__ == '__main__':
+    main()
