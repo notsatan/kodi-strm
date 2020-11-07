@@ -129,10 +129,10 @@ def select_teamdrive(service: Resource) -> str:
         ).execute()
 
         for item in result['drives']:
-            output = f'  {counter} ' + ('/' if counter % 2 else '\\')
-            output += f'\t{item["name"]}{Style.RESET_ALL}'
+            td_list = f'  {counter} ' + ('/' if counter % 2 else '\\')
+            td_list += f'\t{item["name"]}{Style.RESET_ALL}'
 
-            print(f'{Fore.GREEN if counter % 2 else Fore.CYAN}{output}')
+            print(f'{Fore.GREEN if counter % 2 else Fore.CYAN}{td_list}')
 
             # Adding the id for this teamdrive to the list of teamdrives.
             teamdrives.append(item['id'])
@@ -342,7 +342,7 @@ def main():
         if match(pattern_source, sys.argv[i]) and not source:
             # Pattern matching to select the source if the source is null. A better pattern match
             # can be obtained by ensuring that the only accepted value for the source is
-            # alpha-numeric charter or hhyphenunderscores. Skipping this implementation for now.
+            # alpha-numeric charter or hyphen/underscores. Skipping this implementation for now.
 
             # Extracting id from the argument using substitution. Substituting everything from the
             # argument string except for the value :p
