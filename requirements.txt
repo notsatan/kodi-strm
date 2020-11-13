@@ -6,7 +6,7 @@ certifi==2020.6.20
 chardet==3.0.4
 colorama==0.4.3
 google-api-core==1.22.2
-google-api-python-client==1.12.1
+google-api-python-client==1.12.5
 google-auth==1.21.2
 google-auth-httplib2==0.0.4
 google-auth-oauthlib==0.4.1
