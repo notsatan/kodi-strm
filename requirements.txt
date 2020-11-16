@@ -5,7 +5,7 @@ backports.shutil-get-terminal-size==1.0.0
 cachetools==4.1.1
 certifi==2020.11.8
 chardet==3.0.4
-colorama==0.4.3
+colorama==0.4.4
 distlib==0.3.1
 filelock==3.0.12
 google-api-core==1.23.0
