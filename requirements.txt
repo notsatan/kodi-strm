@@ -1,6 +1,6 @@
 appdirs==1.4.4
 astroid==2.5.1
-autopep8==1.5.4
+autopep8==1.5.6
 backports.shutil-get-terminal-size==1.0.0
 cachetools==4.2.1
 certifi==2020.12.5
@@ -10,12 +10,12 @@ distlib==0.3.1
 filelock==3.0.12
 google-api-core==1.26.1
 google-api-python-client==2.0.2
-google-auth==1.27.1
-google-auth-httplib2==0.0.4
-google-auth-oauthlib==0.4.2
-googleapis-common-protos==1.52.0
+google-auth==1.28.0
+google-auth-httplib2==0.1.0
+google-auth-oauthlib==0.4.3
+googleapis-common-protos==1.53.0
 httplib2==0.19.0
-idna==3.1
+idna==2.10
 isort==5.6.4
 lazy-object-proxy==1.5.2
 mccabe==0.6.1
@@ -23,7 +23,7 @@ oauthlib==3.1.0
 protobuf==3.15.6
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
-pycodestyle==2.6.0
+pycodestyle==2.7.0
 pylint==2.7.2
 pytz==2021.1
 reprint==0.6.0
