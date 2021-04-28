@@ -1,0 +1,62 @@
+version: 2
+updates:
+- package-ecosystem: pip
+  directory: "/"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
+  reviewers:
+  - demon-rem
+  ignore:
+  - dependency-name: astroid
+    versions:
+    - 2.5.2
+    - 2.5.3
+  - dependency-name: pylint
+    versions:
+    - 2.7.4
+  - dependency-name: google-api-python-client
+    versions:
+    - 2.1.0
+  - dependency-name: virtualenv
+    versions:
+    - 20.4.0
+    - 20.4.1
+    - 20.4.3
+  - dependency-name: google-api-core
+    versions:
+    - 1.25.0
+    - 1.25.1
+    - 1.26.0
+    - 1.26.2
+  - dependency-name: google-auth-oauthlib
+    versions:
+    - 0.4.3
+  - dependency-name: google-auth-httplib2
+    versions:
+    - 0.1.0
+  - dependency-name: google-auth
+    versions:
+    - 1.25.0
+    - 1.26.1
+    - 1.27.0
+    - 1.28.0
+  - dependency-name: autopep8
+    versions:
+    - 1.5.6
+  - dependency-name: googleapis-common-protos
+    versions:
+    - 1.53.0
+  - dependency-name: isort
+    versions:
+    - 5.7.0
+  - dependency-name: urllib3
+    versions:
+    - 1.26.3
+  - dependency-name: rsa
+    versions:
+    - "4.7"
+    - 4.7.1
+  - dependency-name: pytz
+    versions:
+    - "2020.5"
