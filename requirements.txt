@@ -1,6 +1,6 @@
 appdirs==1.4.4
 astroid==2.6.0
-autopep8==1.5.6
+autopep8==1.5.7
 backports.shutil-get-terminal-size==1.0.0
 cachetools==4.2.2
 certifi==2020.12.5
