@@ -35,4 +35,4 @@ toml==0.10.2
 uritemplate==3.0.1
 urllib3==1.26.7
 virtualenv==20.8.1
-wrapt==1.12.1
+wrapt==1.13.1
