@@ -14,7 +14,7 @@ google-auth==2.1.0
 google-auth-httplib2==0.1.0
 google-auth-oauthlib==0.4.6
 googleapis-common-protos==1.53.0
-httplib2==0.19.1
+httplib2==0.20.1
 idna==3.2
 isort==5.9.3
 lazy-object-proxy==1.6.0
