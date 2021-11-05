@@ -2,7 +2,7 @@ appdirs==1.4.4
 astroid==2.8.4
 autopep8==1.5.7
 backports.shutil-get-terminal-size==1.0.0
-cachetools==4.2.2
+cachetools==4.2.4
 certifi==2021.5.30
 chardet==4.0.0
 colorama==0.4.4
@@ -10,7 +10,7 @@ distlib==0.3.3
 filelock==3.3.2
 google-api-core==2.0.1
 google-api-python-client==2.23.0
-google-auth==2.3.2
+google-auth==2.3.3
 google-auth-httplib2==0.1.0
 google-auth-oauthlib==0.4.6
 googleapis-common-protos==1.53.0
@@ -35,4 +35,4 @@ toml==0.10.2
 uritemplate==3.0.1
 urllib3==1.26.7
 virtualenv==20.8.1
-wrapt==1.12.1
+wrapt==1.13.3
