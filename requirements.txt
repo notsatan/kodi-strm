@@ -3,7 +3,7 @@ astroid==2.8.4
 autopep8==1.6.0
 backports.shutil-get-terminal-size==1.0.0
 cachetools==4.2.4
-certifi==2021.5.30
+certifi==2021.10.8
 chardet==4.0.0
 colorama==0.4.4
 distlib==0.3.3
