@@ -16,67 +16,188 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import Resource, build
 from reprint import output
 
+import googleapiclient
+import re
+
 files_scanned = 0
 directories_scanned = 0
 files_skipped = 0
 bytes_scanned = 0
 
 
-def authenticate() -> Resource:
+class UserInputs:
     """
-    A simple method to authenticate a user with Google Drive API. For the first
-    run (or if script does not have the required permissions), this method will
-    ask the user to login with a browser window, and then save a pickle file with
-    the credentials obtained.
-
-    For subsequent runs, this pickle file will be used directly, ensuring that the
-    user does not have to login for every run of this script.
-
-    Returns
-    --------
-    An instance of `Resource` that can be used to interact with the Google Drive API.
+    Deals with fetching user inputs, processing and storing them
     """
 
-    # Simple declaration, will be populated if credentials are present.
-    creds: Optional[Credentials] = None
+    @staticmethod
+    def fetch() -> UserInputs:
+        """
+        Reads input using `sys.argv`, extracts values for flags from the same
+        """
 
-    # The scope that is to be requested.
-    SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
+        pass
 
-    if exists("token.pickle"):
-        with open("token.pickle", "rb") as token:
-            creds: Credentials = load_pickle(token)
+    def __init__(
+        self,
+        source_drive: str,
+        output_path: str,
+        *,
+        live_updates: bool = True,
+        root_name: Optional[str] = None,
+    ):
+        # Folder ID of the source in Google Drive
+        self.__source_drive: str = source_drive
 
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file("credentials.json", SCOPES)
-            creds = flow.run_local_server(port=0)
-        # Save the credentials for the next run
-        with open("token.pickle", "wb") as token:
-            dump_pickle(creds, token)
+        # Path to output directory - `.strm` files will be generated in this location
+        self.__output_path: str = output_path
 
-    service: Resource = build("drive", "v3", credentials=creds)
-    return service
+        # Print live updates to the screen if true
+        self.__live_updates: bool = live_updates
+
+        # Name of the root directory containing the `.strm` files
+        self.__root_name: Optional[str] = root_name
+
+    @property
+    def source_drive(self) -> str:
+        return self.__source_drive
+
+    @property
+    def output_path(self) -> str:
+        return self.__output_path
+
+    @property
+    def live_updates(self) -> bool:
+        return self.__live_updates
+
+    @property
+    def root_name(self) -> str:
+        return self.__root_name if self.__root_name else ""
 
 
-def update(files: int, directories: int, skipped: int, size: int, out_stream):
+class DriveHandler:
     """
-    Prints updates to the screen.
+    Deals with Drive API and related stuff
+    """
+
+    def __init__(self):
+        self.resource: googleapiclient.discovery.Resource = self.__authenticate()
+
+    @staticmethod
+    def __authenticate() -> googleapiclient.discovery.Resource:
+        """
+        Authenticates user session using Drive API. Will open a browser window asking user
+        to login and grant required permissions for the first run. Saves a pickle file to
+        skip sign-in from the second run
+
+        Returns
+        --------
+        Object of `googleapiclient.discovery.Resource`
+        """
+
+        creds: Optional[Credentials] = None
+
+        # Selectively asks for read-only permission
+        SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
+
+        if exists("token.pickle"):
+            with open("token.pickle", "rb") as token:
+                creds: Credentials = load_pickle(token)
+
+        if not creds or not creds.valid:
+            if creds and creds.expired and creds.refresh_token:
+                creds.refresh(Request())
+            else:
+                flow = InstalledAppFlow.from_client_secrets_file(
+                    "credentials.json", SCOPES
+                )
+                creds = flow.run_local_server(port=0)
+            with open("token.pickle", "wb") as token:
+                dump_pickle(creds, token)  # save credentials for next run
+
+        return googleapiclient.discovery.build("drive", "v3", credentials=creds)
+
+    def __get_teamdrives(
+        self, service: googleapiclient.discovery.Resource
+    ) -> Dict[str, str]:
+        """
+        Fetches a list of all teamdrives associated with the Google account, returns the
+        same as a mapping of teamdrive ID's and the corresponding name
+        """
+
+        drives: Dict[str, str] = {}
+
+        next_page_token: Optional[str] = None
+        first_run: bool = True
+
+        while first_run or next_page_token:
+            first_run = False
+            page_content: Dict[str, Any] = (
+                service.drives().list(pageSize=100, pageToken=next_page_token).execute()
+            )
+
+            for item in page_content["drives"]:
+                drives[item["id"]] = item["name"]
+                next_page_token = page_content.get("nextPageToken", None)
+
+        return drives
+
+    def select_teamdrive(self) -> Optional[str]:
+        """
+        Prints a list of all teamdrives, asks the user to select from the list displayed
+        """
+
+        drives: Dict[str, str] = self.__get_teamdrives(self.resource)
+        if len(drives) == 0:
+            return None
+
+        counter: int = 1
+        keys: List[str] = list(drives.keys())
+        for id in keys:
+            msg: str = (
+                f"  {counter} " + ("/" if counter % 2 else "\\") + f"\t{drives[id]}"
+            )
+
+            print(f"{Fore.GREEN if counter % 2 else Fore.CYAN}{msg}{Style.RESET_ALL}")
+            counter += 1
+
+        while True:
+            print("\nSelect a teamdrive from the list above")
+            choice: str = input("teamdrive> ").strip()
+
+            try:
+                if not re.match(r"^[1-9]\d*$", choice):
+                    raise ValueError(f"Unexpected input value `{choice}`")
+
+                selected: int = int(choice)
+                if selected > len(drives):
+                    raise AssertionError(f"Expected input in range [1-{len(drives)}]")
+
+                return keys[selected - 1]
+            except (ValueError, AssertionError) as e:
+                print(f"\t{Fore.RED}{type(e).__name__}: {e}{Style.RESET_ALL}")
+
+
+class Helper:
+    @staticmethod
+    def walk(args: UserInputs):
+        pass
+
+
+def live_update(files: int, directories: int, skipped: int, size: int, out_stream):
+    """
+    Prints live updates to the screen.
 
     Parameters
     -----------
-    files: Integer containing the number of files that have been scanned. \n
-    directories: Integer containing number of directories that have been scanned. \n
-    skipped: Integer containing the number of files that have been skipped. \n
-    size: Integer containing the raw size of files scanned (in bytes). \n
-    out_stream: A dictionary object to which new lines are to be written as needed. \n
+    files: Number of files scanned until now
+    directories: Number of directories scanned
+    skipped: Count of files that have been skipped
+    size: Bytes processed so far - sum of sizes of all files processed
+    out_stream: A dictionary-like object to which printed lines will be written
     """
 
-    # The value of `size` will be an integer containing the raw size of the file(s) traversed
-    # in bytes. Starting by converting this into a readable format.
-
+    # Convert size into readable format
     # An array size units. Will be used to convert raw size into a readable format.
     sizes = ["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"]
 
@@ -85,7 +206,6 @@ def update(files: int, directories: int, skipped: int, size: int, out_stream):
         size /= 1024
         counter += 1
 
-    # Forming a string containing readable size, this will be used to directly convert th e
     readable_size = "{:.3f} {}".format(size, sizes[counter])
 
     out_stream[2] = f"Directories Scanned: {directories}"
@@ -94,107 +214,17 @@ def update(files: int, directories: int, skipped: int, size: int, out_stream):
     out_stream[5] = f"Files Skipped: {skipped}"
 
 
-def select_teamdrive(service: Resource) -> str:
-    """
-    Allows the user to select the teamdrive for which strm files are to be generated.
-    Will be used to let the user select a source incase a direct id is not supplied.
-
-    Remarks
-    --------
-    Will internally handle any error/unexpected input. The only value returned by
-    this method will be the id of the teamdrive that is to be used.
-
-    Returns
-    --------
-    String containing the ID of the teamdrive selected by the user.
-    """
-
-    # Initializing as non-zero integer to ensure that the loop runs once.
-    nextPageToken: Optional[str] = None
-
-    # Creating a list with the first element filled. Since the numbers being displayed
-    # on the screen start from 1, filling the first element of the list with trash
-    # ensures that the input from the user can used directly.
-    teamdrives: List[str] = [""]
-
-    counter: int = 1
-    while True:
-        result = service.drives().list(pageSize=100, pageToken=nextPageToken).execute()
-
-        for item in result["drives"]:
-            td_list = f"  {counter} " + ("/" if counter % 2 else "\\")
-            td_list += f'\t{item["name"]}{Style.RESET_ALL}'
-
-            print(f"{Fore.GREEN if counter % 2 else Fore.CYAN}{td_list}")
-
-            # Adding the id for this teamdrive to the list of teamdrives.
-            teamdrives.append(item["id"])
-
-            # Finally, incrementing the counter
-            counter += 1
-
-        try:
-            nextPageToken = result["nextPageToken"]
-            if not nextPageToken:
-                break
-        except KeyError:
-            # Key error will occur if there is no next page token -- breaking out of
-            # the loop in such scenario.
-            break
-
-    # Adding an extra line.
-    print()
-
-    while True:
-        print("Select a teamdrive from the list above.")
-        try:
-            td_id = input("teamdrive> ")
-
-            if not match(r"^[0-9]+$", td_id):
-                # Handling the scenario if the input is not an integer. Using regex
-                # since direct type-cast to float will also accept floating-point,
-                # which would be incorrect.
-                raise ValueError
-
-            td_id = int(td_id)
-            if td_id <= 0 or td_id > len(teamdrives):
-                # Handling the scenario if the input is not within the accepted range.
-                # The zero-eth element of this list is garbage value, thus discarding
-                # the input even at zero.
-                raise ValueError
-
-            # If the flow-of-control reaches here, the returning the id of the teamdrive
-            # located at this position.
-            return teamdrives[td_id]
-        except ValueError:
-            # Will reach here if the user enters a non-integer input
-            print(f"\t{Fore.RED}Incorrect input detected. {Style.RESET_ALL}\n")
-
-
-def shrink_path(full_path: str, max_len: int = 70) -> str:
+def shrink_path(path: str, *, max_len: int = 70) -> str:
     """
     Shrinks the path name to fit into a fixed number of characters.
-
-    Parameters
-    -----------
-    full_path: String containing the full path that is to be printed. \n
-    max_len: Integer containing the maximum length for the final path. Should be
-    more than 10 characters. Default: 15 \n
-
-    Returns
-    --------
-    String containing path after shrinking it. Will be at most `max_len` characters
-    in length.
     """
 
-    if len(full_path) <= max_len:
-        # Directly return the path if it fits within the maximum length allowed.
-        return full_path
+    if len(path) <= max_len:
+        # Direct return under max length
+        return path
 
     allowed_len = max_len - 6
-    return (
-        f"{full_path[:int(allowed_len / 2)]}......{full_path[-int(allowed_len / 2):]}"
-    )
+    return f"{path[:int(allowed_len / 2)]}......{path[-int(allowed_len / 2):]}"
 
 
 def walk(
@@ -308,7 +338,7 @@ def walk(
 
             if push_updates:
                 # Updating counter on the screen if updates are to be pushed to the screen.
-                update(
+                live_update(
                     files=files_scanned,
                     directories=directories_scanned,
                     skipped=files_skipped,
@@ -322,7 +352,9 @@ def walk(
 
 def main():
     # Starting by authenticating the connection.
-    service = authenticate()
+    # service = authenticate()
+    handler = DriveHandler()
+    service = handler.resource
 
     destination = getcwd()
     source = None
@@ -378,7 +410,8 @@ def main():
 
     if not isinstance(source, str):
         # If a source has not been set, asking the user to select a teamdrive as root.
-        source = select_teamdrive(service)
+        # TODO: source = select_teamdrive(service)
+        pass
 
     # Attempting to get the details on the folder/teamdrive being used as the source.
     item_details = service.files().get(fileId=source, supportsAllDrives=True).execute()
