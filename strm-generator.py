@@ -2,7 +2,7 @@
 
 import sys
 from os import getcwd, mkdir
-from os.path import exists, isdir, join
+from os.path import exists, isdir, join, splitext
 from pickle import dump as dump_pickle
 from pickle import load as load_pickle
 from re import match
@@ -204,7 +204,7 @@ def shrink_path(full_path: str, max_len: int = 70) -> str:
 
 def walk(origin_id: str, service: Resource, orig_path: str, item_details: Dict[str, str],
          out_stream,
-         push_updates: bool, drive_path='~'):
+         include_extensions: bool, push_updates: bool, drive_path='~'):
     """
         Traverses directories in Google Drive and replicates the file/folder structure similar to
         Google Drive.
@@ -273,6 +273,7 @@ def walk(origin_id: str, service: Resource, orig_path: str, item_details: Dict[s
                     item_details=item,
                     out_stream=out_stream,
                     push_updates=push_updates,
+                    include_extensions=include_extensions,
                     drive_path=f'{join(drive_path, item["name"])}'
                 )
             elif 'video' in item['mimeType'] or match(r'.*\.(mkv|mp4)$', item['name']):
@@ -289,7 +290,13 @@ def walk(origin_id: str, service: Resource, orig_path: str, item_details: Dict[s
                                     f'&driveid={item["teamDriveId"]}'
 
                 file_content += f'&content_type=video'
-                with open(join(cur_path, item['name'] + '.strm'), 'w+') as f:
+                
+                if include_extensions:
+                    file_name = f"{item['name']}.strm"
+                else:
+                    file_name = f"{splitext(item['name'])[0]}.strm"
+
+                with open(join(cur_path, file_name), 'w+') as f:
                     f.write(file_content)
 
                 # Updating the counter for files scanned as well as bytes scanned.
@@ -322,11 +329,13 @@ def main():
     source = None
     updates = True  # True by default.
     dir_name = None  # The name of the directory to store the strm files in.
+    include_extensions = True
 
     # Pattern(s) to be used to match against the source argument. The group(s) are to extract
     # the value from (command-line) argument.
     pattern_source = r'^--source=(.*)'
     pattern_output = r'^--updates="?(off|on)"?$'
+    patterns_extensions = r'^--no-ext$'
 
     # TODO: Might want to differentiate between platforms here. Especially for custom directories.
     pattern_custom_dir = r'^--rootname="?(.*)"?$'
@@ -362,6 +371,8 @@ def main():
                 updates = False
         elif match(pattern_custom_dir, sys.argv[i]):
             dir_name = match(pattern_custom_dir, sys.argv[i]).groups()[0]
+        elif match(patterns_extensions, sys.argv[i]):
+            include_extensions = False
         else:
             print(f'Unknown argument detected `{sys.argv[i]}`')
             exit(10)  # Non-zero exit code to indicate error.
@@ -408,6 +419,7 @@ def main():
             orig_path=destination,
             item_details=item_details,
             out_stream=out_stream,
+            include_extensions=include_extensions,
             push_updates=updates
         )
 
