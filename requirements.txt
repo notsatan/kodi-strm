@@ -9,7 +9,7 @@ colorama==0.4.4
 distlib==0.3.4
 filelock==3.4.0
 google-api-core==2.3.2
-google-api-python-client==2.29.0
+google-api-python-client==2.33.0
 google-auth==2.3.3
 google-auth-httplib2==0.1.0
 google-auth-oauthlib==0.4.6
