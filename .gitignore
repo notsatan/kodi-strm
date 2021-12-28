@@ -2,8 +2,9 @@
 .venv/
 venv/
 
-# Cache files stored by VS Code.
+# Cache files
 .vscode/
+__pycache__
 
 # A bash script that I'm using to port the script on different systems
 # setup.** -- Adding this file too, might ease the setup for some people.
