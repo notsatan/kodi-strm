@@ -25,21 +25,6 @@ class DriveHandler:
         # to reduce API calls. Can be used for teamdrives, and normal directories
         self.dirs: Dict[str, str] = {}
 
-    def drive_name(self, drive_id: str) -> str:
-        """
-        Returns name for a teamdrive using its ID
-
-        Remarks
-        --------
-        Looks for info in local cache - if not found, will internally make a network
-        call and return the directory name
-        """
-
-        if drive_id not in self.dirs:
-            self.fetch_dir_name(dir_id=drive_id)  # fetch info if not cached already
-
-        return self.dirs[drive_id]
-
     def __authenticate(self) -> discovery.Resource:
         """
         Authenticates user session using Drive API.
@@ -76,39 +61,6 @@ class DriveHandler:
 
         return googleapiclient.discovery.build("drive", "v3", credentials=creds)
 
-    def fetch_dir_name(self, *, dir_id: str) -> str:
-        """
-        Returns info obtained regarding a directory/file from Google Drive API
-
-        Remarks
-        --------
-        Designed to get directory name from drive API, but can work with files as well.
-        Internally caches directory name against folder id in `self.dirs`
-
-        Always fetches info through a network call. Use `drive_name` to look through
-        cache before making a network call
-        """
-
-        try:
-            result = (
-                self.resource.files()
-                .get(fileId=dir_id, supportsAllDrives=True)
-                .execute()
-            )
-
-            if result.get("id", True) == result.get("teamDriveId", None):
-                # Enters this block only if the `dir_id` belongs to a teamdrive
-                result = self.resource.drives().get(driveId=dir_id).execute()
-
-            # Cache directory name -- works with teamdrives and folders, id's are unique
-            self.dirs[result["id"]] = result["name"]
-            return result["name"]
-        except Exception as e:
-            typer.secho(
-                f"Unable to find drive directory `{dir_id}`", fg=typer.colors.RED
-            )
-            raise typer.Abort()
-
     def __get_teamdrives(self) -> Dict[str, str]:
         """
         Fetches and returns a list of all teamdrives associated with the Google account
@@ -141,6 +93,54 @@ class DriveHandler:
             next_page_token = page_content.get("nextPageToken", None)
 
         return tds
+
+    def drive_name(self, drive_id: str) -> str:
+        """
+        Returns name for a teamdrive using its ID
+
+        Remarks
+        --------
+        Looks for info in local cache - if not found, will internally make a network
+        call and return the directory name
+        """
+
+        if drive_id not in self.dirs:
+            self.fetch_dir_name(dir_id=drive_id)  # fetch info if not cached already
+
+        return self.dirs[drive_id]
+
+    def fetch_dir_name(self, *, dir_id: str) -> str:
+        """
+        Returns info obtained regarding a directory/file from Google Drive API
+
+        Remarks
+        --------
+        Designed to get directory name from drive API, but can work with files as well.
+        Internally caches directory name against folder id in `self.dirs`
+
+        Always fetches info through a network call. Use `drive_name` to look through
+        cache before making a network call
+        """
+
+        try:
+            result = (
+                self.resource.files()
+                .get(fileId=dir_id, supportsAllDrives=True)
+                .execute()
+            )
+
+            if result.get("id", True) == result.get("teamDriveId", None):
+                # Enters this block only if the `dir_id` belongs to a teamdrive
+                result = self.resource.drives().get(driveId=dir_id).execute()
+
+            # Cache directory name -- works with teamdrives and folders, id's are unique
+            self.dirs[result["id"]] = result["name"]
+            return result["name"]
+        except Exception as e:
+            typer.secho(
+                f"Unable to find drive directory `{dir_id}`", fg=typer.colors.RED
+            )
+            raise typer.Abort()
 
     def select_teamdrive(self) -> str:
         """
@@ -189,9 +189,9 @@ class DriveHandler:
         self,
         source: str,
         *,
+        orig_path: str,
         change_dir: Callable[[str], None],
         generator: Callable[[str, str, str, int, Optional[str], Optional[str]], None],
-        orig_path: str,
         custom_root: Optional[str] = None,
     ):
         """
@@ -201,10 +201,10 @@ class DriveHandler:
         Params
         -------
         source: String containing ID of the source directory
-        source_details: Dictionary containing info regarding the source directory
+        orig_path: String containing path to the destination directory
         change_dir: Method call to create, and change directories. Should accept
             complete path to the directory as parameter
-        handler: Method call to create `strm` files
+        generator: Method call to create `strm` files
         strm_creator: Function to create `.strm` files - supplied arguments; item id,
             item name, teamdrive id [optional]
         custom_root: Optional. String containing custom name for root directory
