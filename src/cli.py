@@ -37,19 +37,6 @@ def __callback_version(fired: bool):
     raise typer.Exit()  # direct exit
 
 
-def __callback_destination(dst: str) -> Optional[str]:
-    """
-    Validates if the destination directory exists. Converts to absolute path
-    """
-
-    if dst is None:
-        return dst
-    elif not os.path.exists(dst):
-        raise typer.BadParameter("invalid destination")
-
-    return Path(dst).absolute()  # return absolute path
-
-
 def cmd_interface(
     source: Optional[str] = typer.Option(
         None,
@@ -58,12 +45,16 @@ def cmd_interface(
         case_sensitive=__CASE_SENSITIVE,
         help="Folder ID for source directory on Google Drive",
     ),
-    destination: Optional[str] = typer.Option(
+    destination: Optional[Path] = typer.Option(
         None,
         "--dest",
         "--destination",
+        exists=True,  # path needs to exist
+        writable=True,  # ensures a writeable path
+        dir_okay=True,  # allows path to directory
+        file_okay=False,  # rejects path to a file
+        resolve_path=True,  # resolves complete path
         case_sensitive=__CASE_SENSITIVE,
-        callback=__callback_destination,
         help="Set a destination directory where strm files will be placed",
     ),
     root_name: Optional[str] = typer.Option(
