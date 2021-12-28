@@ -107,17 +107,13 @@ def cmd_interface(
     )
 
     if not source or len(source) == 0:
-        # No source directory is provided, get a list of all teamdrives
-        drive_handler.get_teamdrives()
-        source = drive_handler.select_teamdrive()  # force user to choose one of these
-    else:
-        # If directory ID is being used, fetch
-        drive_handler.get_dir_details(dir_id=source)
+        # No source directory is provided, get the user to choose a teamdrive
+        source = drive_handler.select_teamdrive()
 
     typer.secho(
         f"Walking  through `{drive_handler.drive_name(source)}`",
-        err=True,
         fg=typer.colors.GREEN,
+        err=True,
     )
 
     drive_handler.walk(

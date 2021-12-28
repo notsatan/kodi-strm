@@ -21,13 +21,22 @@ class DriveHandler:
     def __init__(self):
         self.resource: googleapiclient.discovery.Resource = self.__authenticate()
 
-        # Dictionary mapping teamdrive ID's to their name
+        # Dictionary mapping ID's to their (human-readable) name. Acts as a simple cache
+        # to reduce API calls. Can be used for teamdrives, and normal directories
         self.dirs: Dict[str, str] = {}
 
     def drive_name(self, drive_id: str) -> str:
         """
         Returns name for a teamdrive using its ID
+
+        Remarks
+        --------
+        Looks for info in local cache - if not found, will internally make a network
+        call and return the directory name
         """
+
+        if drive_id not in self.dirs:
+            self.fetch_dir_name(dir_id=drive_id)  # fetch info if not cached already
 
         return self.dirs[drive_id]
 
@@ -67,13 +76,17 @@ class DriveHandler:
 
         return googleapiclient.discovery.build("drive", "v3", credentials=creds)
 
-    def get_dir_details(self, *, dir_id: str) -> Dict[Any, Any]:
+    def fetch_dir_name(self, *, dir_id: str) -> str:
         """
         Returns info obtained regarding a directory/file from Google Drive API
 
         Remarks
         --------
-        Designed to get folder info from drive API, but can work with files as well
+        Designed to get directory name from drive API, but can work with files as well.
+        Internally caches directory name against folder id in `self.dirs`
+
+        Always fetches info through a network call. Use `drive_name` to look through
+        cache before making a network call
         """
 
         try:
@@ -89,25 +102,29 @@ class DriveHandler:
 
             # Cache directory name -- works with teamdrives and folders, id's are unique
             self.dirs[result["id"]] = result["name"]
-            return result
+            return result["name"]
         except Exception as e:
             typer.secho(
-                f"Unable to find folder with ID `{dir_id}`", fg=typer.colors.RED
+                f"Unable to find drive directory `{dir_id}`", fg=typer.colors.RED
             )
             raise typer.Abort()
 
-    def get_teamdrives(self):
+    def __get_teamdrives(self) -> Dict[str, str]:
         """
-        Fetches a list of all teamdrives associated with the Google account
+        Fetches and returns a list of all teamdrives associated with the Google account
 
         Remarks
         --------
-        Needs to be executed before `select_teamdrive` method -- will fetch all
-        teamdrives linked to the Google Account
+        Returns a dictionary of all teamdrives associated with the account. Aborts if
+        the account has no teamdrive associated with it.
+
+        Teamdrives (if found) will be cached in `self.dirs`
         """
 
         next_page_token: Optional[str] = None
         first_run: bool = True
+
+        tds: Dict[str, str] = {}
         while next_page_token or first_run:
             first_run = False
             page_content: Dict[str, Any] = (
@@ -118,9 +135,12 @@ class DriveHandler:
 
             for item in page_content["drives"]:
                 self.dirs[item["id"]] = item["name"]
+                tds[item["id"]] = item["name"]
 
             # Loops as long as there is a `nextPageToken`
             next_page_token = page_content.get("nextPageToken", None)
+
+        return tds
 
     def select_teamdrive(self) -> str:
         """
@@ -131,17 +151,17 @@ class DriveHandler:
         String containing ID of the selected teamdrive
         """
 
-        if len(self.dirs) == 0:
+        tds = self.__get_teamdrives()
+
+        if len(tds) == 0:
             typer.secho("Unable to locate any teamdrives!", fg=typer.colors.RED)
             raise typer.Abort()
 
         counter: int = 1
-        keys: List[str] = list(self.dirs.keys())
+        keys: List[str] = list(tds.keys())
         for id in keys:
             typer.secho(
-                f"  {counter}. "
-                + ("/" if counter % 2 else "\\")
-                + f"\t{self.dirs[id]}",
+                f"  {counter}. " + ("/" if counter % 2 else "\\") + f"\t{tds[id]}",
                 fg=typer.colors.GREEN if counter % 2 else typer.colors.CYAN,
             )
 
@@ -153,10 +173,8 @@ class DriveHandler:
 
             try:
                 selected: int = int(choice)
-                if selected > len(self.dirs):
-                    raise AssertionError(
-                        f"Expected input in range [1-{len(self.dirs)}]"
-                    )
+                if selected > len(tds):
+                    raise AssertionError(f"Expected input in range [1-{len(tds)}]")
                 return keys[selected - 1]
             except AssertionError as e:
                 typer.secho(f"\t{type(e).__name__}: {e}", fg=typer.colors.RED, err=True)
@@ -192,6 +210,10 @@ class DriveHandler:
         custom_root: Optional. String containing custom name for root directory
         """
 
+        if not custom_root and not self.dirs.get(source, False):
+            # The source directory has not been cached, fetch the same
+            self.fetch_dir_name(dir_id=source)
+
         # Stack to track directories encountered. Each entry in the stack will be a
         # tuple consisting of the directory id, and a path to the local directory
         queue: deque[Tuple[str, str]] = deque()
@@ -213,7 +235,7 @@ class DriveHandler:
                 .list(
                     pageSize=1000,  # get max items possible with each call
                     pageToken=page_token,  # decides page for pagination
-                    fields="files(name, id, mimeType, teamDriveId, driveId, size)",  # response
+                    fields="files(name, id, mimeType, teamDriveId, driveId, size)",
                     supportsAllDrives=True,  # enable support for teamdrives
                     includeItemsFromAllDrives=True,
                     # Ensure items are in parent directory, exclude deleted items
