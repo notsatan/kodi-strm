@@ -25,6 +25,22 @@ class FileHandler:
         self.__include_ext = include_extensions
 
     @staticmethod
+    def __readable_size(size: int) -> str:
+        """
+        Converts number of bytes into readable format, and returns the same as string
+        """
+
+        # An array size units. Will be used to convert raw size into a readable format.
+        sizes = ["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"]
+
+        counter = 0
+        while size >= 1024:
+            size /= 1024
+            counter += 1
+
+        return "{:.3f} {}".format(size, sizes[counter])
+
+    @staticmethod
     def __is_media_file(file_name: str, mime_type: str) -> bool:
         """
         Decides if a file is a media file -- used to decide which files to create
