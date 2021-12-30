@@ -215,19 +215,21 @@ class DriveHandler:
             self.fetch_dir_name(dir_id=source)
 
         # Stack to track directories encountered. Each entry in the stack will be a
-        # tuple consisting of the directory id, and a path to the local directory
+        # tuple consisting of the directory id, and a path to the local directory,
+        # and a string containing the name of the directory
         queue: deque[Tuple[str, str]] = deque()
         queue.append(
             [
                 source,
                 join_path(orig_path, custom_root if custom_root else self.dirs[source]),
+                self.dirs[source],
             ]
         )
 
         page_token: str = None
         while len(queue):
 
-            dir_id, path = queue.pop()
+            dir_id, path, dir_name = queue.pop()
             change_dir(path)
 
             page = (
@@ -247,7 +249,9 @@ class DriveHandler:
             for item in page["files"]:
                 if item["mimeType"] == "application/vnd.google-apps.folder":
                     # Add this directory to the queue
-                    queue.append([item["id"], join_path(path, item["name"])])
+                    queue.append(
+                        [item["id"], join_path(path, item["name"]), item["name"]]
+                    )
                     continue
 
                 # Generate STRM file if the flow-of-control reaches this point
