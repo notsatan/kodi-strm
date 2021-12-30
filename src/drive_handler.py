@@ -180,8 +180,8 @@ class DriveHandler:
                 typer.secho(f"\t{type(e).__name__}: {e}", fg=typer.colors.RED, err=True)
             except ValueError as e:
                 typer.secho(
-                    f"ValueError: Invalid input `{choice}`",
-                    fg=typer.Colors.RED,
+                    f"\tValueError: Invalid input `{choice}`",
+                    fg=typer.colors.RED,
                     err=True,
                 )
 
