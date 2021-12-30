@@ -39,7 +39,12 @@ class FileHandler:
 
         if "video" in mime_type:
             return True
-        elif file_name.endswith(".mp4", ".mkv"):
+        elif file_name.endswith(
+            (
+                ".mp4",
+                ".mkv",
+            )
+        ):
             # Skip if item doesn't have media-file extension, or mime type
             return True
 
