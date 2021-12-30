@@ -14,6 +14,7 @@ class FileHandler:
     ) -> None:
         self.__cur_path: str = destination
         self.__cur_dir: str = None
+        self.__cur_file: str = None
 
         self.__directories: int = 0
         self.__files: int = 0
@@ -140,6 +141,8 @@ class FileHandler:
         """
         Internally creates `.strm` files -- ignores non-media files
         """
+
+        self.__cur_file = item_name
 
         # Check if the file is a media file -- if not, direct return
         if not self.__is_media_file(file_name=item_name, mime_type=mime_type):
