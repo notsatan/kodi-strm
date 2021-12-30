@@ -53,7 +53,7 @@ class FileHandler:
     @staticmethod
     def __shrink(input: str, *, max_len: int = 60) -> str:
         """
-        Shrinks the path name to fit into a fixed number of characters
+        Shrinks the string to fit into a fixed number of characters
 
         Remarks
         --------
@@ -92,16 +92,18 @@ class FileHandler:
         td_id: Optional[str],
     ) -> bool:
         """
-        Central method that creates the `.strm` file for files using their ID
+        Creates `.strm` file for files using their ID
 
         Params
         -------
         item_id: ID of the item on Google Drive
         item_name: Name of the item - as on Drive
-        drive_id: Optional, ID of the drive containing the item.
-        td_id: Optional, ID of teamdrive containing the item. For items in a teamdrive.
+        drive_id: Optional, ID of the drive containing the item
+        td_id: Optional, ID of teamdrive containing the item. For items in a teamdrive
         """
 
+        # The hard-coded strings are simply how the `Drive Add-on` extension expects 
+        # them to be
         file_contents: str = (
             f"plugin://plugin.googledrive/?action=play&item_id={item_id}"
         )
