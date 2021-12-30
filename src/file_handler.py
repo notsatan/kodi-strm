@@ -13,12 +13,14 @@ class FileHandler:
         live_updates: bool,
     ) -> None:
         self.__cur_path: str = destination
+        self.__cur_dir: str = None
 
         self.__directories: int = 0
         self.__files: int = 0
         self.__skipped: int = 0
         self.__size: int = 0
 
+        self.__live_updates = live_updates
         self.__include_ext = include_extensions
 
     @staticmethod
@@ -77,13 +79,6 @@ class FileHandler:
         half_len = int((max_len / 2) - 2)
         return f"{input[:half_len]}....{input[-half_len:]}"
 
-    def switch_dir(self, path: str):
-        if not path_exists(path):
-            mkdir(path=path)
-            self.__directories += 1
-
-        self.__cur_path = path
-
     def __create_strm(
         self,
         item_id: str,
@@ -102,7 +97,7 @@ class FileHandler:
         td_id: Optional, ID of teamdrive containing the item. For items in a teamdrive
         """
 
-        # The hard-coded strings are simply how the `Drive Add-on` extension expects 
+        # The hard-coded strings are simply how the `Drive Add-on` extension expects
         # them to be
         file_contents: str = (
             f"plugin://plugin.googledrive/?action=play&item_id={item_id}"
@@ -124,6 +119,14 @@ class FileHandler:
             f.write(file_contents)
 
         return True
+
+    def switch_dir(self, path: str, dir_name: str):
+        if not path_exists(path):
+            mkdir(path=path)
+            self.__directories += 1
+
+        self.__cur_path = path
+        self.__cur_dir = dir_name
 
     def strm_generator(
         self,
