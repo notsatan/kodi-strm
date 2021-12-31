@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Optional
 
 import typer
+from reprint import output
 
 from src.drive_handler import DriveHandler
 from src.file_handler import FileHandler
@@ -89,31 +90,36 @@ def cmd_interface(
 ) -> None:
     drive_handler = DriveHandler()  # authenticate drive api
 
-    # Replace destination directory with the current directory path if not supplied
-    destination = destination if destination else os.getcwd()
-    file_handler = FileHandler(
-        destination=destination,
-        include_extensions=not rem_extensions,
-        live_updates=updates,
-    )
+    with output(output_type="list", initial_len=9, interval=500) as outstream:
+        # Replace destination directory with the current directory path if not supplied
+        destination = destination if destination else os.getcwd()
+        file_handler = FileHandler(
+            destination=destination,
+            include_extensions=not rem_extensions,
+            live_updates=updates,
+            outstream=outstream,
+        )
 
-    if not source or len(source) == 0:
-        # No source directory is provided, get the user to choose a teamdrive
-        source = drive_handler.select_teamdrive()
+        if not source or len(source) == 0:
+            # No source directory is provided, get the user to choose a teamdrive
+            source = drive_handler.select_teamdrive()
 
-    typer.secho(
-        f"Walking  through `{drive_handler.drive_name(source)}`",
-        fg=typer.colors.GREEN,
-        err=True,
-    )
+        if updates:
+            typer.secho(
+                f"Walking  through `{drive_handler.drive_name(source)}`\n",
+                fg=typer.colors.RED,
+                err=True,
+            )
 
-    drive_handler.walk(
-        source=source,
-        change_dir=file_handler.switch_dir,
-        generator=file_handler.strm_generator,
-        orig_path=destination,
-        custom_root=root_name,
-    )
+        drive_handler.walk(
+            source=source,
+            change_dir=file_handler.switch_dir,
+            generator=file_handler.strm_generator,
+            orig_path=destination,
+            custom_root=root_name,
+        )
+
+    typer.secho(f"Completed generating strm files\nFiles located in: {destination}", fg=typer.colors.GREEN)
 
 
 def main():
