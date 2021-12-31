@@ -41,6 +41,40 @@ def __callback_version(fired: bool):
     raise typer.Exit()  # direct exit
 
 
+def __check_collisions(dst: str, force: bool):
+    """
+    Checks against collisions for the destination path
+    """
+
+    if not path_exists(dst):
+        return  # direct return
+
+    if force:
+        # Force flag enabled, direct remove and exit
+        shutil.rmtree(dst)
+        return
+
+    typer.secho(
+        f"Destination directory `{dst}` already exists\n"
+        + "Proceed by wiping the existing directory?",
+        err=True,
+        fg=typer.colors.RED,
+    )
+
+    while True:
+        typer.echo("y/n> ", nl=False)
+        choice = str(input())
+
+        if choice.lower() == "n":
+            raise typer.Abort()
+        elif choice.lower() == "y":
+            shutil.rmtree(dst)
+            typer.echo(f"Successfully wiped path '{dst}'\n", err=True)
+            return
+        else:
+            typer.secho(f"\tUnexpected input: `{choice}`\n", fg=typer.colors.RED)
+
+
 def cmd_interface(
     source: Optional[str] = typer.Option(
         None,
@@ -59,14 +93,14 @@ def cmd_interface(
         file_okay=False,  # rejects path to a file
         resolve_path=True,  # resolves complete path
         case_sensitive=__CASE_SENSITIVE,
-        help="Set a destination directory where strm files will be placed",
+        help="Destination directory where `strm` files will be placed",
     ),
     root_name: Optional[str] = typer.Option(
         None,
         "--root",
         "--rootname",
         case_sensitive=__CASE_SENSITIVE,
-        help="Set a custom name for the source directory",
+        help="Custom name for the source directory",
     ),
     rem_extensions: bool = typer.Option(
         False,
@@ -81,6 +115,14 @@ def cmd_interface(
         show_default=False,
         case_sensitive=__CASE_SENSITIVE,
         help="Show progress during transfers",
+    ),
+    force: bool = typer.Option(
+        False,
+        "--force",
+        "-f",
+        show_default=True,
+        case_sensitive=__CASE_SENSITIVE,
+        help="Wipe out root directory (if exists) in case of a collision",
     ),
     version: bool = typer.Option(
         None,
@@ -110,15 +152,17 @@ def cmd_interface(
         if updates:
             typer.secho(
                 f"Walking  through `{drive_handler.drive_name(source)}`\n",
-                fg=typer.colors.RED,
+                fg=typer.colors.GREEN,
                 err=True,
             )
 
-        out_path = join_path(
-            destination, root_name if root_name else drive_handler.drive_name(source)
+        __check_collisions(
+            force=force,
+            dst=join_path(
+                destination,
+                root_name if root_name else drive_handler.drive_name(source),
+            ),
         )
-        if path_exists(out_path):
-            shutil.rmtree(out_path)
 
         drive_handler.walk(
             source=source,
