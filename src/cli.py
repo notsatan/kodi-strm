@@ -45,13 +45,34 @@ def __check_collisions(dst: str, force: bool):
     """
     Checks against collisions for the destination path
     """
-    
+
     if not path_exists(dst):
         return  # direct return
 
     if force:
-        # Remove existing path directly if `force` flag is enabled
+        # Force flag enabled, direct remove and exit
         shutil.rmtree(dst)
+        return
+
+    typer.secho(
+        f"Destination directory `{dst}` already exists\n"
+        + "Proceed by wiping the existing directory?",
+        err=True,
+        fg=typer.colors.RED,
+    )
+
+    while True:
+        typer.echo("y/n> ", nl=False)
+        choice = str(input())
+
+        if choice.lower() == "n":
+            raise typer.Abort()
+        elif choice.lower() == "y":
+            shutil.rmtree(dst)
+            typer.echo(f"Successfully wiped path '{dst}'\n", err=True)
+            return
+        else:
+            typer.secho(f"\tUnexpected input: `{choice}`\n", fg=typer.colors.RED)
 
 
 def cmd_interface(
@@ -131,7 +152,7 @@ def cmd_interface(
         if updates:
             typer.secho(
                 f"Walking  through `{drive_handler.drive_name(source)}`\n",
-                fg=typer.colors.RED,
+                fg=typer.colors.GREEN,
                 err=True,
             )
 
