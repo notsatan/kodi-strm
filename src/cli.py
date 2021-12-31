@@ -1,11 +1,13 @@
 import os
 import platform
+from os.path import join as join_path, exists as path_exists
 import sysconfig
 from pathlib import Path
 from typing import Optional
 
 import typer
 from reprint import output
+import shutil
 
 from src.drive_handler import DriveHandler
 from src.file_handler import FileHandler
@@ -111,6 +113,10 @@ def cmd_interface(
                 err=True,
             )
 
+        out_path = join_path(destination, root_name if root_name else drive_handler.drive_name(source))
+        if path_exists(out_path):
+            shutil.rmtree(out_path)
+
         drive_handler.walk(
             source=source,
             change_dir=file_handler.switch_dir,
@@ -119,7 +125,7 @@ def cmd_interface(
             custom_root=root_name,
         )
 
-    typer.secho(f"Completed generating strm files\nFiles located in: {destination}", fg=typer.colors.GREEN)
+    typer.secho(f"Completed generating strm files\nFiles generated in: {destination}", fg=typer.colors.GREEN)
 
 
 def main():
