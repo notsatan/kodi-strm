@@ -127,6 +127,7 @@ def cmd_interface(
     version: bool = typer.Option(
         None,
         "--version",
+        "-v",
         is_eager=True,
         callback=__callback_version,
         case_sensitive=__CASE_SENSITIVE,
