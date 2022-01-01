@@ -110,11 +110,12 @@ def cmd_interface(
         case_sensitive=__CASE_SENSITIVE,
         help="Remove original extensions from generated strm files",
     ),
-    updates: bool = typer.Option(
-        True,
+    hide_updates: bool = typer.Option(
+        False,
+        "--no-updates",
         show_default=False,
         case_sensitive=__CASE_SENSITIVE,
-        help="Show progress during transfers",
+        help="Disable live progress/updates",
     ),
     force: bool = typer.Option(
         False,
@@ -142,7 +143,7 @@ def cmd_interface(
         file_handler = FileHandler(
             destination=destination,
             include_extensions=not rem_extensions,
-            live_updates=updates,
+            live_updates=not hide_updates,
             outstream=outstream,
         )
 
@@ -150,7 +151,7 @@ def cmd_interface(
             # No source directory is provided, get the user to choose a teamdrive
             source = drive_handler.select_teamdrive()
 
-        if updates:
+        if not hide_updates:
             typer.secho(
                 f"Walking  through `{drive_handler.drive_name(source)}`\n",
                 fg=typer.colors.GREEN,
