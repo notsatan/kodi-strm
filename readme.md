@@ -1,349 +1,391 @@
+<div align="center">
+
 ![Release][latest-release]
 ![Release Date][release-date]
 ![Language][language]
 ![License][license]
 ![Code Size][code-size]
 
+</div>
+
 <!-- PROJECT LOGO -->
 <br />
 <p align="center">
-  <a href="https://github.com/demon-rem/kodi-strm/">
-    <img src="./images/kodi-logo.png" alt="Logo" width="320" height="160">
-  </a>
+
+  <img src="https://user-images.githubusercontent.com/22884507/147852703-c98caebc-8dff-494f-b38d-a80c9e5e21b5.png" width="550" height="300"/>
 
   <h3 align="center">kodi-strm</h3>
 
   <p align="center">
-    A small project to complement the Google Drive AddOn for Kodi
+    A project to complement the Google Drive AddOn for Kodi
     <br><br>
-    <a href="https://github.com/demon-rem/kodi-strm/"><strong>Explore the docs »</strong></a>
-    <br />
-    <br />
+    <a href="#usage"><strong>Jump to Docs »</strong></a>
+    <br><br>
     ·
-    <a href="https://github.com/demon-rem/kodi-strm/issues">Bug Report</a>
+    <a href="https://github.com/notsatan/kodi-strm/issues/new?template=bug_report.md">Bug Report</a>
     ·
-    <a href="https://github.com/demon-rem/kodi-strm/issues">Request Feature</a>
+    <a href="https://github.com/notsatan/kodi-strm/issues/new?template=feature_request.md">Request Feature</a>
     ·
-    <a href="https://github.com/demon-rem/kodi-strm/fork">Fork Repo</a>
+    <a href="https://github.com/notsatan/kodi-strm/fork">Fork Repo</a>
     ·
   </p>
 </p>
-<br>
-
----
-<br>
-<!-- TABLE OF CONTENTS -->
-
-## Table of Contents
-- [About The Project](#about-the-project)
-  - [What is a strm file?](#what-is-a-strm-file)
-  - [Announcements](#announcements)
-    - [Upgrading from v1.3 or below.](#upgrading-from-v13-or-below)
-      - [What do I need to do?](#what-do-i-need-to-do)
-      - [What if I am using a version greater than v1.3?](#what-if-i-am-using-a-version-greater-than-v13)
-      - [Why this change?](#why-this-change)
-- [Pre-Requisites](#pre-requisites)
-- [Setup](#setup)
-    - [What do the setup scripts do?](#what-do-the-setup-scripts-do)
-- [Usage](#usage)
-  - [Generating strm files](#generating-strm-files)
-  - [Where are the strm files placed?](#where-are-the-strm-files-placed)
-- [Custom Arguments](#custom-arguments)
-    - [Scanning Selective Folders](#scanning-selective-folders)
-    - [Custom Destination Directory](#custom-destination-directory)
-    - [Realtime Updates](#realtime-updates)
-    - [Custom Name for Root Directory](#custom-name-for-root-directory)
-- [Resources](#resources)
-    - [Getting Folder ID's](#getting-folder-ids)
-    - [Destination Directory vs Root Directory](#destination-directory-vs-root-directory)
-- [Examples](#examples)
-    - [Custom destination](#custom-destination)
-    - [Scanning a folder selectively](#scanning-a-folder-selectively)
-    - [Custom root directory](#custom-root-directory)
-  - [Miscellaneous Examples](#miscellaneous-examples)
-- [Is this script better than the existing add-on?](#is-this-script-better-than-the-existing-add-on)
-  - [How does this script work](#how-does-this-script-work)
-- [Advanced Setup](#advanced-setup)
-- [Roadmap](#roadmap)
-    - [A list of *possible* improvements;](#a-list-of-possible-improvements)
-- [Contributions](#contributions)
-- [License](#license)
-- [Acknowledgements](#acknowledgements)
-- [Just some fun](#just-some-fun)
-
+<br><br>
 
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-A simple python script to complement the functionality of [Google Drive AddOn](https://kodi.tv/addon/music-add-ons-picture-add-ons-plugins-video-add-ons/google-drive) for Kodi.
+A simple python script to complement the functionality of [Google Drive AddOn](https://kodi.tv/addons/matrix/plugin.googledrive) for Kodi.
 
-For an add-on that [claims to be "*extremely fast*"](https://github.com/cguZZman/plugin.googledrive#google-drive-kodi-addon), I found the add-on to be quite slow (*and unreliable*). It crashes way too frequently, is slow, and gets stuck way too often (this happened frequently enough, to the point I decided to make this project just to solve this problem).
+For an add-on that [claims](https://github.com/cguZZman/plugin.googledrive#:~:text=Extremely%20fast)
+to be "*extremely fast*", I found it be quite slow (*and unreliable*). Added to that, it
+crashes way too frequently, and gets stuck - frequently enough for me to make this
+script just to solve this problem.
 
-The main purpose of this project is to generate strm files for media file(s) present in a directory on Google Drive - and achieve this more reliably than the Kodi AddOn.
+The main purpose of this project is to generate strm files for media file(s) present in
+a directory on Google Drive - and achieve this more reliably than the Kodi AddOn.
 
 ### What is a strm file?
 
-In simple terms, *strm* files refer to files having an extension of `.strm`. They usually created and used by multimedia applications (Kodi and Plex being the main examples). They are used to store URL pointing to the actual media file(s) stored on in a remote server/cloud.
+In simple terms, *strm* files refer to files having an extension of `.strm`. They are
+created by multimedia applications (Kodi and Plex being the main examples) and, among
+other stuff, contain a URL pointing to the media file(s) stored in a remote server/cloud,
 
-This URL is then used by the application to stream the actual media file when required.
+These files are then parsed by the application, post which the URL is used to stream the actual media file.
 
-### Announcements
-
-Just a section to post announcements (if any) before major releases/changes.
-
-#### Upgrading from v1.3 or below.
-
-This notice is for users that have been using this repository from ***v1.3 or below***, and will be updating.
-
-Due to changes being made in the scopes while using OAuth, the token generated by previous version(s) of this script cannot be used **beyond v1.3**.
-
-##### What do I need to do?
-
-Simple, delete the existing `token.pickle` file in the root of your repo (if it exists). 
-
-And you're good to go - the script will ask you to re-login during its next run, and this time, it'll be logging-in with the updated scopes (readonly instead of read and write).
-
-PS: The `token.pickle` file will be created after the first login. The `token.pickle` file will never be created if no one has logged-into the script
-
-##### What if I am using a version greater than v1.3?
-
-Nothing, the changes above need to be made only if you are updating from a previous version to a new one - new users can directly use the latest release without having to worry about stability of the older releases.
-
-##### Why this change?
-
-This change is to make way for a future commit allowing users to be able to use a default-project (much like the Kodi-addon does), and authenticate this existing project instead of having each user create a new project for their own personal use.
-
-<br>
-
----
 ## Pre-Requisites
-* Python 3.5+
+* Lastest Stable version of [Python](https://www.python.org/downloads)
 
 ## Setup
 1. Create a [Google Project](http://console.developers.google.com/) and [enable Google Drive API](https://developers.google.com/drive/api/v3/enable-drive-api).
 2. Once you enable the Drive API for your project, setup credentials required to use this API.
 3. Download the credentials as a JSON file and rename this file as `credentials.json`.
 4. Move the `credentials.json` file into the same directory containing the python script.
-5. Install the python dependencies.
-    <br> `pip install -r requirements.txt`
-6. Install [Kodi AddOn for Google Drive](https://kodi.tv/addon/music-add-ons-picture-add-ons-plugins-video-add-ons/google-drive) in your Kodi installation.
-7. Login to the add-on. Make sure that you use the same Google account while logging into this script and the Google add-on.
+5. Install the project dependencies.
 
-Alternatively, for the fourth step, you can directly use the `setup.sh` or `setup.bat` scripts and have them create an efficient setup for you.
+```shell
+pip install -r requirements.txt
+```
+
+Alternatively, for the last step, you can directly use the `setup.sh` or `setup.bat` scripts and have them create an efficient setup for you.
 
 #### What do the setup scripts do?
 
 The setup script will;
  * Update `pip`
  * Install `virtualenv`
- * Create a virtual environment named `.venv`
- * Activate this virtual package
- * Install required python packages into this virtual environment.
+ * Create a virtual environment named `venv`
+ * Activate this environment
+ * Install required dependencies into this virtual environment
 
 While anyone is free to use the direct setup files, do note that they are primarily for my use (to quickly setup a system for usage/testing/debugging) - and are *not guaranteed* to work in your system.
 
+### Post Setup
+
+Once you're done with setting up a working enviroment, simply run the script
+
+```sh
+python strm-generator.py
+```
+
+For the first run, the script will ask you to login to a Google account. While not
+necessary, it is recommended to use the same Google account for this script, and the
+Google Drive Add-On.
+
+P.S. Make sure to install the [Kodi AddOn for Google Drive](https://kodi.tv/addons/matrix/plugin.googledrive) in your Kodi installation.
+
 ## Usage
 
-Executing the python script directly (without custom arguments) will fetch a list of all teamdrives to which the account has access -- allowing you to select a teamdrive from this list which will then be scanned for media files.
+Executing the `strm-generator.py` script without any arguments will fetch a list of all
+teamdrives to which the account has access, allowing you to select a teamdrive from this
+list. The selected teamdrive will then be treated as the source directory for the script.
 
-Alternatively, you can pass [custom arguments](#custom-arguments) to the script to modify the default behaviour.
+Alternatively, you can use [custom arguments](#custom-arguments) to modify the source
+directory, destination, or more!
 
-Once the script finishes generating strm files after a scan, add the resulting [directory as a source](https://kodi.wiki/view/Adding_video_sources) in your Kodi installation. From there on, Kodi will treat these `.strm` files as actual media files and will be able to scan/play them normally.
+Once the script finishes generating strm files after a scan, add the resulting
+[directory as a source](https://kodi.wiki/view/Adding_video_sources) in your Kodi
+installation. From there on, the Google Drive AddOn will treat these `.strm` files as
+actual media files and will be able to scan/play them normally.
 
-> Note: 
-> 
-> If you are unable to play the media files with Kodi, make sure that you have installed the [Kodi AddOn for Google Drive](https://kodi.tv/addon/music-add-ons-picture-add-ons-plugins-video-add-ons/google-drive) and have logged into the add-on with the **same** Google Account that you are using for this script.
+> Note:
+>
+> If you are unable to play the media files with Kodi, make sure that you have installed
+> the [Kodi AddOn for Google Drive](https://kodi.tv/addons/matrix/plugin.googledrive)
+> and have logged into the add-on with the **same** Google Account that you are using
+> for this script.
 
-Once you're comfortable with the usage of this script, you might want to take a look at the [advanced setup](#advanced-setup) section.
+Once you're comfortable with the usage of this script, you might want to take a look at
+the [advanced setup](#advanced-setup) section for some ideas :)
 
-### Generating strm files
+### Quick Overview
 
-Running the python script without any custom arguments will fetch a list of all team-drives that are connected to the account, selecting a teamdrive from this list will make the script scan the contents of the particular teamdrive.
+|        Flag       	|  ShortHand 	|                        Description                        	|           Default          	|
+|:-----------------:	|:----------:	|:---------------------------------------------------------:	|:--------------------------:	|
+|    `--version`    	|    `-v`    	|            Display `kodi-strm` version and exit           	|             NA             	|
+|      `--help`     	|            	|                   Display help and exit                   	|             NA             	|
+|     `--source`    	|            	|               Drive ID to the source folder               	|             NA             	|
+|  `--destination`  	|  `--dest`  	|  Destination directory where `.strm` files are generated  	|  Current Working Directory 	|
+|    `--rootname`   	|  `--root`  	|           Custom name for the `source` directory          	| Name of `source` directory 	|
+| `--no-extensions` 	| `--no-ext` 	| Remove original file extensions from generated strm files 	|        **Disabled**        	|
+|   `--no-updates`  	|            	|             Disable live updates on the screen            	|         **Enabled**        	|
+|     `--force`     	|    `-f`    	|  Directly wipe out `root` directory in case of collision  	|          **False**         	|
 
-### Where are the strm files placed?
+By default, the strm files generated after a scan are stored in the **working directory**.
+Use `pwd` in Unix-based systems, or `cd` in Windows get the location of current working
+directory.
 
-By default, the strm files generated after a scan are stored in the **working directory**. Use `pwd` in Unix-based systems, or `cd` in Windows get the location of current working directory. 
-
-By deafult, the strm files are placed inside a directory with the **same name as the source** (the Google folder/teamdrive) scanned.
-
-Note: Take a look at the flags for [custom destination directory](#custom-destination-directory) and [custom root directory](#custom-name-for-root-directory) to modify the directory inside which strm files are being generated.
+Note: Take a look at the flag for [custom destination directory](#custom-destination-directory)
+and to modify this behaviour.
 
 ## Custom Arguments
 
-Using custom arguments, you can control the folder that is being scanned, modify the directory in which the strm files are being placed after a scan, modify the name of the root directory being used, choose if you want the script to run in silent mode or not and more.
+Custom arguments passed when executing the script from the terminal allow you to modify
+the behaviour of the script!
 
-Note: These flags can be passed only if the script is being executed from the terminal. 
+```sh
+python strm-generator.py [flags]
+```
 
-#### Scanning Selective Folders
+#### Source Directory
 
-**Flag:** `--source=<folder-id>`  
-**Value Expected:** ID of an existing folder on Google Drive.
+**Flag:** `--source=<folder-id>`<br>
+**Shorthand:** `NA`<br>
+**Value Expected:** ID of a folder/teamdrive on Google Drive
 
-By default, the script will prompt you to select a teamdrive as the source - the selected teamdrive will be completely scanned by the script. This might not always be desired. 
+This flag allows you to scan the contents of a folder/teamdrive from Google Drive, i.e.
+with the help of this flag instead of scanning a complete teamdrive (or the main drive),
+an individual folder can be selectively scanned using its ID.
 
-This flag allows you to scan the contents of any particular directory as needed, i.e. with the help of this flag instead of scanning a complete teamdrive (or the main drive), an individual folder can be selectively scanned using its ID.
+> A source directory is a folder/teamdrive in Google Drive that is used as the **source**
+> to generate strm files by *kodi-strm*
 
-> Note: Check [Getting the Folder ID](#getting-folder-ids) section to get the ID of a folder in Google Drive.
+If source directory is **not** specified, the script will ask you to select  a teamdrive
+as the source - the selected teamdrive will be scanned by the script.
 
-Side Note: Drive API treats teamdrives as folders, meaning that this flag can also be used to scan a teamdrive with it's ID.
-
-[>> Using this Flag; Example](#scanning-a-folder-selectively)
+> Note: Check [Getting Folder IDs](#getting-folder-ids) section to learn how to get the
+> ID of a folder/teamdrive from Google Drive.
 
 #### Custom Destination Directory
 
-**Flag:** `--dest="</path/to/destination>"`  
-**Expected Value:** Path to an ***existing*** directory.
+**Flag:** `--destination="</path/to/destination>"`<br>
+**Shorthand:** `--dest`<br>
+**Expected Value:** Path to an ***existing*** directory.<br>
 
-This flag is used to decide the destination directory in which the root directory (containing the strm files) will be placed.
+This flag is used to decide the destination directory in which the root directory
+(containing the strm files) will be placed. Should be a path to an existing directory!
 
 [>> Resource: Destination Directory vs Root Directory](#destination-directory-vs-root-directory)
 
-Make sure that path supplied as a value with this flag belongs to an **existing directory**. If the path contains spaces, wrap it inside double quotes.
+P.S. If the path contains spaces, wrap it in double quotes.
 
-[>> Using this Flag; Example](#custom-destination)
+#### Updates
 
-#### Realtime Updates
 
-**Flag:** `--updates=<value>`  
-**Expected Value:** `on` OR `off`
 
-This is an optional flag to see real-time progress as the script is scanning items from the source. The value of `off` implies no updates are to be printed to the console - effectively running the script silently.
+**Flag:** `--no-updates`<br>
+**Shorthand:** `NA`<br>
+**Expected Value:** `NA`<br>
 
-Having realtime updates might not always be desirable (especially if script is being run in the backgrond - me for one). Setting the value of this flag to `off` will run the script in silent mode - under silent mode, the only time this script will print to the console will be to notify that a scan has completed.
+Obviously enough, using this flag disables any updates from the script (expect for just
+a completion message).
 
-By default, the value of this flag is `on`, i.e. realtime progress will be displayed on the console.
+By default, the script prints realtime updates on the terminal - this includes info
+on the directory and file(s) being scanned, and more!
 
-[>> Using this Flag; Example](#miscellaneous-examples)
+Having realtime updates might not always be desirable (especially if *kodi-strm* is run
+in the background). Using this flag will run the script in silent mode - the only time
+this script will print to the console will be to notify that a scan has completed.
 
 #### Custom Name for Root Directory
 
-**Flag:** `--rootname=<root-directory>`  
-**Expected Value:** Name for the root directory
+**Flag:** `--rootname=<root-directory>`<br>
+**Shorthand:** `--root`<br>
+**Expected Value:** Name for the root directory<br>
 
-Optional flag to modify the name of root directory that is created by this script during runtime.
+Optional flag to modify the name of root directory. By default, the name of the
+teamdrive/folder being scanned  will be used as the name of the root directory.
 
 [>> Resource: Destination Directory vs Root Directory](#destination-directory-vs-root-directory)
 
-Be default, the name of the teamdrive/folder being scanned  will be used as the name of the root directory.
+Important: If a directory with the same name as the root directory already exists inside
+destination directory, the script will ask you for confirmation before proceeding to
+wipe the existing path.
 
-Important: If a directory with the same name as the root directory already exists inside destination directory, this script will ***erase the existing root directory***.
+#### Force-Wipe Existing Paths
 
-[>> Using this Flag; Example](#custom-root-directory)
+**Flag:** `--force`<br>
+**Shorthand:** `-f`<br>
+**Expected Value:** `NA`<br>
+
+With the `force` flag enabled, if there is a collision when creating the `root`
+directory, the existing path will be wiped completely - without any confirmation!
+
+By default, in case of a path collision, *kodi-strm* will ask you for confirmation
+before deleting the existing path. However, this may not always be desired - especially
+if you already plan to overwrite the existing directory.
+
+For such *specific* scenarios, enabling the `force` flag ensures *kodi-strm* will
+directly proceed by wiping the existing path (without asking for a confirmation).
+
+#### Version
+
+**Flag:** `--version`<br>
+**Shorthand:** `-v`<br>
+**Expected Value:** `NA`<br>
+
+Prints info related to the operating system, and the current version of *kodi-strm*,
+following which the script directly terminates
+
+#### Help
+
+**Flag:** `--help`<br>
+**Shorthand:** `NA`<br>
+**Expected Value:** `NA`<br>
+
+Prints a list of all flags available, and a brief description regarding them
 
 ## Resources
 
 #### Getting Folder ID's
 
-You can get the id for a particular folder by opening the folder and copying the id from the url.
+You can get the id for a particular folder from the url to the directory.
 
-For example, in the URL `https://drive.google.com/drive/folders/0AOC6NXsE2KJMUk9PTA`, the folder-id is `0AOC6NXsE2KJMUk9PTA`.
+For example, in the URL `https://drive.google.com/drive/folders/0AOC6NXsE2KJMUk9PTA`,
+the folder-id is `0AOC6NXsE2KJMUk9PTA`.
 
-This method can also be used to get the ID of a particular TeamDrive and use it as a [custom argument](#scanning-selective-folders) to directly scan the teamdrive.
+This method can also be used to get the ID of a particular TeamDrive and use it as a
+[custom argument](#scanning-a-folder-selectively) to directly scan the teamdrive.
 
 
 #### Destination Directory vs Root Directory
 
-In basic terms, when the script scans a folder on drive, it creates a directory which will contain all the strm files being generated. 
+In simplifed terms, `destination` directory is "destination" directory, which will
+contain the *root* directory. When run, `kodi-strm` will create a `root` directory
+in the destination directory - this *root* directory will contain the contents of
+scanned Google Drive folder.
 
-This directory that has been created by the script, during the runtime is the ***Root Directory***. The parent directory that contains the root directory is termed as the ***Destination Directory***.
+The `root` directory will be the directory/teamdrive that is being scanned from Google
+Drive. As an example, if you scan a folder *Movies* with folder ID `0TRC6NXsE2KJMUkasdA`,
+and want to store the generated *strm* files in `~/Downloads`, then;
+  - The directory `~/Downloads` will be the `destination` directory
+  - Inside `~/Downloads`, *kodi-strm* will **create** a directory named "Movies". This
+      is the `root` directory - that is placed inside the `destination` directory.
 
-The path being used as the parent/destination directory should point to an already existing directory. On the other hand, if a directory with the same name as root directory is already present inside the destination, it will be wiped off.
+You can modify the destination path (the `destination` directory) with the
+`--destination` flag, at the same time, you can modify the name of the created
+directory ("Movies") to be, say "*Drive Movies*" with the `--rootname` flag!
 
-As an example, take a look at this directory structure;
+The following command will use `~/home` as the destination directory - i.e. strm files
+will be placed at this location, and "*output files*" as the name of source
+root directory;
 
-``` bash
-│── E:
-│   ├── Kodi Library
-│   │   ├── Downloaded Media
-│   │   │    ├── new-file.mp4.strm
-│   │   │    ├── old-file-02.mp4.strm
-│   │   ├── Collection
-│   │   │    ├── movie-file.mkv.strm
-│   ├── STRM Files
-│   │   ├── Content Media
-│   │   │    ├── movie-01.mkv.strm
-│   │   │    ├── movie-02.mp4.strm
-│   │   │    ├── trailer.mkv.strm
+```sh
+python strm-generator.py --source=0TRC6NXsE2KJMUkasdA --destination="~/home" --rootname="output files"
 ```
 
-From above, strm files are present inside three directories, namely, `Downloaded Media`, `Collection` and `Content Media` - these are the *Root Directories*. The directories containing these root directories then become the `Destination Directory`. Meaning that, there are two destination directories, `Kodi Library` and `STRM Files`.
+From the example above, the folder `0TRC6NXsE2KJMUkasdA` is named "Movies" on Google
+Drive, but running the above command will rename it as "output files" when scanning it
+as the source directory!
 
+P.S. The `destination` path should point to an **existing directory**
 
 ## Examples
 
 #### Custom destination
-Running the following command will generate the root directory (containing strm files) at the destination `/home/kodi library`. Make sure that this is a valid path and points to a directory.
 
-`python strm-generator.py --dest="/home/kodi library"`
+Running the following command will generate the root directory (containing strm files)
+at the destination `/home/kodi library`. Make sure that this is a valid path and points
+to a directory.
 
-Note that since the path contains space, it has been wrapped in double spaces.
+```sh
+python strm-generator.py --destination="/home/kodi library"
+```
+
+Note that the path contains space, it needs to be wrapped in double quotes - regardless
+of this, you are recommended to wrap paths in double quotes.
 
 #### Scanning a folder selectively
 
-Running the following command will scan a folder with the ID `0AOC6NXsE2KJMUk9PVA` on Google Drive. Make sure that the account you signed into the script with has access to this folder.
+Running the following command will scan a folder with the ID `0AOC6NXsE2KJMUk9PVA` on
+Google Drive. Make sure that the account you signed into the script with has access to
+this folder.
 
-`python strm-generator.py --source=0AOC6NXsE2KJMUk9PVA --dest="/home/kodi library"`
+```sh
+python strm-generator.py --source=0AOC6NXsE2KJMUk9PVA --destination="/home/kodi library"
+```
 
-Note the additional destination flag in the command, instead of placing the results in the working directory, the script will now place them inside `/home/kodi library`.
+Note the additional destination flag in the command, instead of placing the results in
+the working directory, the script will now place them inside `/home/kodi library`.
 
 #### Custom root directory
 
 Running the following command will generate strm files inside a directory named `new root directory`
 
-`python strm-generator.py --source=0AOC6NXsE2KJMUk9PVA --dest="/home/kodi library" --rootname="new root directory"`
+```sh
+python strm-generator.py --source=0AOC6NXsE2KJMUk9PVA --dest="/home/kodi library" --rootname="new root directory"
+```
 
-The strm files will be present in a directory named `new root directory` (this is the root directory). The root directory by itself will be present inside `"/home/kodi library"` (this being the destination directory).
+The strm files will be present in a directory named `new root directory` (this is the
+root directory). The root directory by itself will be present inside
+`"/home/kodi library"` (the destination directory).
 
 ### Miscellaneous Examples
 
 * Scanning a particular folder on drive, with custom destination and root directories, plus no updates to the console (using all the flags at once).
-> `python strm-generator.py --source=0AOC6NXsE2KJMUk9PVA --dest="/home/kodi libraries" --rootname="Staging; Media" --updates=off`
+```sh
+python strm-generator.py --source=0AOC6NXsE2KJMUk9PVA --dest="/home/kodi libraries" --rootname="Staging; Media" --no-updates
+```
 
 * Scanning a particular folder with no updates
-> `python strm-generator.py --source=0AOC6NXsE2KJMUk9PVA --updates=off`
+```sh
+python strm-generator.py --source=0AOC6NXsE2KJMUk9PVA --no-updates
+```
 
 * Scanning a folder selectively with custom root directory
-> `python strm-generator.py --source=0AOC6NXsE2KJMUk9PVA --rootname="Media"`
+```sh
+python strm-generator.py --source=0AOC6NXsE2KJMUk9PVA --rootname="Media"
+```
 
 * Scanning a folder with custom destination directory and no updates on console
-> `python strm-generator.py --source=0AOC6NXsE2KJMUk9PVA --dest="/home/Videos" --updates=off`
-
-
----
-
-## Is this script better than the existing add-on?
-
-Based on the tests I have run, this script didn't crash or lag, and was quite a bit faster than the add-on. Honestly, I'm not sure why this happens - while the Google Drive add-on is [open source](https://github.com/cguZZman/plugin.googledrive), I'm yet to take a proper look at it.
-
-What I do know is, this script is as simple as it can be. There is no clever hack, or any trick present. Yet, all the tests I ran prove that this script is somehow better than the add-on (and no, this is **definitely not** because of any hardware limitation at my end).
-
-It is possible that this difference is being caused by Kodi (or the integration between the add-on and Kodi). Regardless, I noticed a flaw, and wrote a simple script to overcome it effectively.
-
-### How does this script work
-
-The basic functioning of this script revolves around traversing a directory on Google Drive, iterating through each file present in this directory and generating an equivalent `.strm` file for every media file. An important part of this is to be able to recognize media files.
-
-The most important step while creating a strm file is to ensure that the contents of the file are stored in such a manner that they can be parsed by the Google Drive add-on. This ensures that this script does not need to handle the part of using these strm files to stream the video. Once an strm file has been generated, everything else is being handled by the Kodi add-on, this includes parsing the strm file to get the actual URL and streaming media from the URL.
+```sh
+python strm-generator.py --source=0AOC6NXsE2KJMUk9PVA --dest="/home/Videos" --no-updates
+```
 
 ## Advanced Setup
 
-This section contains ideas and suggestions to how you can use this script to get a seamless experience with you Kodi setup.
+This section contains ideas and suggestions to how you can use this script to get a
+seamless experience with you Kodi setup.
 
-With a little help of [custom arguments](#custom-arguments) supported by the script, you can set up the script to be run on fixed intervals (with pre-fixed parameters).
+With a little help of [custom arguments](#custom-arguments) supported by the script,
+you can set up the script to be run on fixed intervals (with pre-fixed parameters).
 
-For example, I'm on Linux, I've setup a [systemd.service](https://man7.org/linux/man-pages/man5/systemd.service.5.html) to run this script once every couple of days. At every run, the script scans a fixed folder from Google Drive, and places it inside an existing Kodi library.
+For example, I'm on Linux, I've setup a [systemd.service](https://man7.org/linux/man-pages/man5/systemd.service.5.html)
+to run this script once every couple of days. At every run, the script scans a folder
+from Google Drive, and places it inside an existing Kodi library.
 
-Whenever I open up Kodi, it automatically scrapes the new files, and adds them to my library. And so, my system automatically fetches any updates on Google Drive, syncs them, and adds them to Kodi without requiring any input from me. 
+Whenever I open up Kodi, it automatically scrapes the new files, and adds them to my
+library. And so, my system automatically fetches any updates on Google Drive, syncs
+them, and adds them to Kodi without requiring any input from me.
 
-If needed, the systemd service can be modified to run the script multiple times, scanning different sources each time to be able to scale my current setup to span across multiple teamdrives/folders, all this without requiring any sort of input.
+If needed, the systemd service can be modified to run the script multiple times,
+scanning different sources each time to be able to scale my current setup to span
+across multiple teamdrives/folders, all this without requiring any sort of input.
 
-Windows users can achieve the same functionality as systemd.service using [Windows Task Scheduler](https://en.wikipedia.org/wiki/Windows_Task_Scheduler). In case someone wants to replicate a similar setup as mine, here are some useful links to help you get started.
+Windows users can achieve the same functionality as systemd.service using
+[Windows Task Scheduler](https://en.wikipedia.org/wiki/Windows_Task_Scheduler). In case
+someone wants to replicate a similar setup as mine, here are some useful links to help
+you get started.
 
 - [Creating a systemd.service](https://medium.com/@benmorel/creating-a-linux-service-with-systemd-611b5c8b91d6)
 - [Using Windows Task Scheduler](https://windowsreport.com/schedule-tasks-windows-10)
 - [Setting up Kodi for auto-scan](https://www.howtogeek.com/196025/ask-htg-how-do-you-set-your-xbmc-library-to-automatically-update/)
 
+P.S. If you're setting up a service for automated runs, you might want to add the
+`--force` flag to your command ([docs](#force-wipe-existing-paths)) - especially for
+setups similar to mine! The flag ensures *kodi-strm* will wipe the existing
+directory instead of (permanently) waiting for a confirmation in the background.
 
 <!-- ROADMAP -->
 ## Roadmap
@@ -355,13 +397,13 @@ Based on the tests I've run, this script is ~20% faster than the Google Drive Ad
 > *For the curious, yes, I ran the test on the exact same source without any modifications. The results are as accurate as possible.*
 
 #### A list of *possible* improvements;
-- Improvement(s) on the GUI - ~~updating progress on the terminal while the script is running~~ added in [e451e08
-](https://github.com/demon-rem/kodi-strm/commit/e451e087adcc3bc116f1718e0bc5a9100b81555a).
-- Multithreading (still not sure on this one) - despite GIL, the execution speed can be improved to *some* extent.
+- ~~Display live progress when the script runs~~ added in #1
+- Multithreading (still not sure on this one) - despite GIL, the execution speed can be improved to *some* extent
 
 ## Contributions
 
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions made are **extremely appreciated**.
+Contributions are what make the open source community such an amazing place to learn,
+inspire, and create. Any contributions made are **extremely appreciated**.
 
 1. Fork the Project
 2. Create your Feature Branch (`git checkout -b feature/new-feature`)
@@ -373,21 +415,18 @@ Contributions are what make the open source community such an amazing place to l
 Distributed under the MIT License. See [`LICENSE`](./LICENSE). for more information.
 
 ## Acknowledgements
-* [Img Shields](https://shields.io): for the badges being used in this readme.
-* [Google API Python Client](https://github.com/googleapis/google-api-python-client): a python wrapper to work with Drive API.
-* [Coloroma](https://github.com/tartley/colorama): Used to print the names of teamdrives in separate colors while selecting a source in interactive mode.
-* [Reprint](https://github.com/Yinzo/reprint): Used to provide updates on the console.
-* Special credits to [Satan](https://github.com/not-satan) for being annoying enough to force me to work on this repo as a priority.
+* [Img Shields](https://shields.io)
+* [Google API Python Client](https://github.com/googleapis/google-api-python-client)
+* [Coloroma](https://github.com/tartley/colorama)
+* [Reprint](https://github.com/Yinzo/reprint)
 
 <br>
 
----
-### Just some fun
-![Random Meme](https://github.com/demon-rem/res/blob/master/memes/S9krNOFfLlLdXPvm00ZQGMzRah.jpg?raw=true)
+![Random Meme](https://github.com/notsatan/res/blob/master/memes/S9krNOFfLlLdXPvm00ZQGMzRah.jpg?raw=true)
 
-[code-size]: https://img.shields.io/github/languages/code-size/demon-rem/kodi-strm?style=for-the-badge
-[language]: https://img.shields.io/github/languages/top/demon-rem/kodi-strm?style=for-the-badge
-[license]: https://img.shields.io/github/license/demon-rem/kodi-strm?style=for-the-badge
-[latest-release]: https://img.shields.io/github/v/release/demon-rem/kodi-strm?style=for-the-badge
-[release-date]: https://img.shields.io/github/release-date/demon-rem/kodi-strm?style=for-the-badge
-[issues-url]: https://img.shields.io/github/issues-raw/demon-rem/kodi-strm?style=for-the-badge
+[code-size]: https://img.shields.io/github/languages/code-size/notsatan/kodi-strm?style=for-the-badge
+[language]: https://img.shields.io/github/languages/top/notsatan/kodi-strm?style=for-the-badge
+[license]: https://img.shields.io/github/license/notsatan/kodi-strm?style=for-the-badge
+[latest-release]: https://img.shields.io/github/v/release/notsatan/kodi-strm?style=for-the-badge
+[release-date]: https://img.shields.io/github/release-date/notsatan/kodi-strm?style=for-the-badge
+[issues-url]: https://img.shields.io/github/issues-raw/notsatan/kodi-strm?style=for-the-badge
