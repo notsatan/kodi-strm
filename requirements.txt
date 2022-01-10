@@ -18,7 +18,7 @@ pyasn1==0.4.8
 pyasn1-modules==0.2.8
 pyparsing==3.0.6
 reprint==0.6.0
-requests==2.26.0
+requests==2.27.1
 requests-oauthlib==1.3.0
 rsa==4.8
 six==1.16.0
