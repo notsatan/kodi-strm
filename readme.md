@@ -420,10 +420,16 @@ Distributed under the MIT License. See [`LICENSE`](./LICENSE). for more informat
 * [Coloroma](https://github.com/tartley/colorama)
 * [Reprint](https://github.com/Yinzo/reprint)
 
-<br>
+### Sponsors
 
-![Random Meme](https://github.com/notsatan/res/blob/master/memes/S9krNOFfLlLdXPvm00ZQGMzRah.jpg?raw=true)
+`kodi-strm` was made possible with the support of the following organization(s):
 
+<div align="center">
+<a href="https://tutanota.com">
+  <img src="https://tutanota.com/resources/images/press/tutanota-logo-red-black-font.svg" width="300" height="150"></img>
+</a>
+<div>
+  
 [code-size]: https://img.shields.io/github/languages/code-size/notsatan/kodi-strm?style=for-the-badge
 [language]: https://img.shields.io/github/languages/top/notsatan/kodi-strm?style=for-the-badge
 [license]: https://img.shields.io/github/license/notsatan/kodi-strm?style=for-the-badge
