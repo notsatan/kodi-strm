@@ -4,7 +4,7 @@ certifi==2021.10.8
 charset-normalizer==2.0.10
 click==8.0.3
 colorama==0.4.4
-google-api-core==2.4.0
+google-api-core==2.5.0
 google-api-python-client==2.36.0
 google-auth==2.3.3
 google-auth-httplib2==0.1.0
