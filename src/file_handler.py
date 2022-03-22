@@ -1,3 +1,4 @@
+import logging
 from os import mkdir
 from os.path import exists as path_exists
 from os.path import join as join_path
@@ -15,6 +16,9 @@ class FileHandler:
         include_extensions: bool,
         live_updates: bool,
         outstream: output = None,
+        *,
+        log: bool = False,
+        unsafe_logging: bool = False,
     ) -> None:
         self.__cur_path: str = destination
         self.__cur_dir: str = None
@@ -29,6 +33,12 @@ class FileHandler:
         self.__include_ext = include_extensions
 
         self.__outstream = outstream
+
+        self.__logging = log
+        self.__unsafe_logging = unsafe_logging
+
+        if self.__logging or self.__unsafe_logging:
+            logging.info("Logging enabled for file handler")
 
     @staticmethod
     def __readable_size(size: int) -> str:
@@ -165,7 +175,14 @@ class FileHandler:
         )
 
         # Create strm file, and write to it
-        with open(join_path(self.__cur_path, file_name), "w+") as f:
+        dest = join_path(self.__cur_path, file_name)
+
+        if self.__logging:
+            logging.debug(f"Creating strm file: {item_id}")
+        elif self.__unsafe_logging:
+            logging.debug(f"Creaing strm file: \"{dest}\" [{item_id}]")
+
+        with open(dest, "w+") as f:
             f.write(file_contents)
 
         return True
@@ -195,6 +212,13 @@ class FileHandler:
 
         # Check if the file is a media file -- if not, direct return
         if not self.__is_media_file(file_name=item_name, mime_type=mime_type):
+            if self.__logging:
+                logging.warn(f"Skipping file (not media file): {item_id}")
+            elif self.__unsafe_logging:
+                logging.warn(
+                    f"Skipping file (not media file): \"{join_path(self.__cur_path, item_name)}\" [{item_id}]"
+                )
+
             self.__skipped += 1  # calculate this as a `skipped` file
             self.__update()
             return
