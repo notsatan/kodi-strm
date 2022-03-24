@@ -1,4 +1,6 @@
+import logging
 from collections import deque
+from ntpath import join
 from os.path import exists as path_exists
 from os.path import join as join_path
 from pickle import dump as dump_pickle
@@ -193,6 +195,8 @@ class DriveHandler:
         change_dir: Callable[[str], None],
         generator: Callable[[str, str, str, int, Optional[str], Optional[str]], None],
         custom_root: Optional[str] = None,
+        log: bool = False,
+        unsafe_logging: bool = False,
     ):
         """
         Walks through the source folder in Google Drive - creating `.strm` files for
@@ -231,6 +235,11 @@ class DriveHandler:
 
             dir_id, path, dir_name = queue.pop()
             change_dir(path, dir_name)
+
+            if log:
+                logging.info(f"Directory: {dir_id}")
+            elif unsafe_logging:
+                logging.info(f"Directory: \"{join_path(path, dir_name)}\" [{dir_id}]")
 
             page = (
                 self.resource.files()
