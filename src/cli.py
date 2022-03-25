@@ -1,3 +1,4 @@
+import logging
 import os
 import platform
 import shutil
@@ -20,6 +21,11 @@ __APP_NAME: Optional[str] = "kodi-strm"
 __CASE_SENSITIVE: bool = False
 
 
+# Unsafe logging (if enabled), will include file/directory names in logs
+unsafe_logging: bool = False
+enable_logging: bool = False
+
+
 def __callback_version(fired: bool):
     """
     Callback function - fired when the `--version` flag is invoked. Check the value
@@ -39,6 +45,38 @@ def __callback_version(fired: bool):
     )
 
     raise typer.Exit()  # direct exit
+
+
+def __callback_logging(enable: bool):
+    if not enable:
+        return
+
+    global enable_logging
+    enable_logging = True
+
+    logging.basicConfig(
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=[logging.FileHandler("logs.txt"), logging.StreamHandler()],
+        level=logging.DEBUG,
+    )
+
+    logging.info("Logging enabled")
+
+
+def __callback_unsafe_logging(enable: bool):
+    if not enable:
+        return
+
+    global unsafe_logging
+    unsafe_logging = True
+
+    logging.basicConfig(
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=[logging.FileHandler("logs.txt"), logging.StreamHandler()],
+        level=logging.DEBUG,
+    )
+
+    logging.warn("Unsafe logging enabled")
 
 
 def __check_collisions(dst: str, force: bool):
@@ -125,6 +163,22 @@ def cmd_interface(
         case_sensitive=__CASE_SENSITIVE,
         help="Wipe out root directory (if exists) in case of a collision",
     ),
+    _: bool = typer.Option(
+        None,
+        "--logging",
+        is_eager=True,
+        callback=__callback_logging,
+        case_sensitive=__CASE_SENSITIVE,
+        help="Write logs to a log file",
+    ),
+    __: bool = typer.Option(
+        False,
+        "--unsafe-logging",
+        is_eager=True,
+        callback=__callback_unsafe_logging,
+        case_sensitive=__CASE_SENSITIVE,
+        help="Unsafe logging. Includes file/directory names",
+    ),
     version: bool = typer.Option(
         None,
         "--version",
@@ -137,6 +191,7 @@ def cmd_interface(
 ) -> None:
     drive_handler = DriveHandler()  # authenticate drive api
 
+    global enable_logging, unsafe_logging
     with output(output_type="list", initial_len=9, interval=500) as outstream:
         # Replace destination directory with the current directory path if not supplied
         destination = destination if destination else os.getcwd()
@@ -145,6 +200,8 @@ def cmd_interface(
             include_extensions=not rem_extensions,
             live_updates=not hide_updates,
             outstream=outstream,
+            log=enable_logging,
+            unsafe_logging=unsafe_logging,
         )
 
         if not source or len(source) == 0:
@@ -172,6 +229,8 @@ def cmd_interface(
             generator=file_handler.strm_generator,
             orig_path=destination,
             custom_root=root_name,
+            log=enable_logging,
+            unsafe_logging=unsafe_logging,
         )
 
     typer.secho(
