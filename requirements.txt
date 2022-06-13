@@ -6,7 +6,7 @@ click==8.0.4
 colorama==0.4.4
 google-api-core==2.7.1
 google-api-python-client==2.42.0
-google-auth==2.6.2
+google-auth==2.7.0
 google-auth-httplib2==0.1.0
 google-auth-oauthlib==0.5.1
 googleapis-common-protos==1.56.0
