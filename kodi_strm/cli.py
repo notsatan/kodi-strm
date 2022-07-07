@@ -10,8 +10,8 @@ from typing import Optional
 import typer
 from reprint import output
 
-from src.drive_handler import DriveHandler
-from src.file_handler import FileHandler
+from kodi_strm.drive_handler import DriveHandler
+from kodi_strm.file_handler import FileHandler
 
 __VERSION: Optional[str] = "1.5.1-alpha"
 __APP_NAME: Optional[str] = "kodi-strm"
