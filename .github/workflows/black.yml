@@ -1,6 +1,7 @@
 name: Black
 
 on:
+  workflow_dispatch:
   push:
     branches-ignore:
       - "draft/**"
