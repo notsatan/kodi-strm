@@ -16,11 +16,11 @@
     <a href="#usage"><strong>Jump to Docs »</strong></a>
     <br><br>
     ·
-    <a href="https://github.com/notsatan/kodi-strm/issues/new?template=bug_report.md">Bug Report</a>
+    <a href="../../issues/new?template=bug_report.md">Bug Report</a>
     ·
-    <a href="https://github.com/notsatan/kodi-strm/issues/new?template=feature_request.md">Request Feature</a>
+    <a href="../../issues/new?template=feature_request.md">Request Feature</a>
     ·
-    <a href="https://github.com/notsatan/kodi-strm/fork">Fork Repo</a>
+    <a href="../fork">Fork Repo</a>
     ·
   </p>
 
