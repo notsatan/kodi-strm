@@ -13,7 +13,7 @@ from reprint import output
 from kodi_strm.drive_handler import DriveHandler
 from kodi_strm.file_handler import FileHandler
 
-__VERSION: Optional[str] = "1.5.1-alpha"
+__VERSION: Optional[str] = "2.0.0"
 __APP_NAME: Optional[str] = "kodi-strm"
 
 # Switch to flip all flags to be case in/sensitive
