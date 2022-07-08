@@ -1,24 +1,18 @@
+## kodi-strm
+
 <div align="center">
 
-![Release][latest-release]
-![Release Date][release-date]
-![Language][language]
-![License][license]
-![Code Size][code-size]
+  ![A gif displaying `kodi-strm` in action][demo-gif]
 
-</div>
+  ![Release][latest-release]
+  ![Release Date][release-date]
+  ![Language][language]
+  ![License][license]
+  ![Code Size][code-size]
 
-<!-- PROJECT LOGO -->
-<br />
-<p align="center">
-
-  <img src="https://user-images.githubusercontent.com/22884507/147852703-c98caebc-8dff-494f-b38d-a80c9e5e21b5.png" width="550" height="300"/>
-
-  <h3 align="center">kodi-strm</h3>
+  A project to complement the Google Drive AddOn for Kodi
 
   <p align="center">
-    A project to complement the Google Drive AddOn for Kodi
-    <br><br>
     <a href="#usage"><strong>Jump to Docs »</strong></a>
     <br><br>
     ·
@@ -29,9 +23,8 @@
     <a href="https://github.com/notsatan/kodi-strm/fork">Fork Repo</a>
     ·
   </p>
-</p>
-<br><br>
 
+</div>
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project
@@ -451,3 +444,4 @@ Distributed under the MIT License. See [`LICENSE`](./LICENSE). for more informat
 [latest-release]: https://img.shields.io/github/v/release/notsatan/kodi-strm?style=for-the-badge
 [release-date]: https://img.shields.io/github/release-date/notsatan/kodi-strm?style=for-the-badge
 [issues-url]: https://img.shields.io/github/issues-raw/notsatan/kodi-strm?style=for-the-badge
+[demo-gif]: https://user-images.githubusercontent.com/22884507/177959717-33ed1a20-c289-4dcf-a9b2-4d497e4eb2c6.gif
