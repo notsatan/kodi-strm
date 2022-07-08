@@ -20,7 +20,7 @@
     ·
     <a href="../../issues/new?template=feature_request.md">Request Feature</a>
     ·
-    <a href="../fork">Fork Repo</a>
+    <a href="../../fork">Fork Repo</a>
     ·
   </p>
 
