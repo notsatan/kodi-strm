@@ -228,7 +228,6 @@ class DriveHandler:
 
         page_token: str = None
         while len(queue):
-
             dir_id, path, dir_name = queue.pop()
             change_dir(path, dir_name)
 
